@@ -1,0 +1,67 @@
+
+type Transfer @entity @index(fields: ["from", "to"]) @index(fields: ["timestamp", "from", "to"]) {
+    id: ID!
+    timestamp: BigInt! @index
+    from: String!
+    to: String!
+    amount: BigDecimal! @index
+    tags: [String!]
+}
+
+type CallByEra @entity {
+  id: ID! # era_contract
+  contractAddress: String! @index
+  era: BigInt! @index
+  numberOfCalls: BigInt!
+  activeUsers: [String]!
+  uniqueActiveUsers: BigInt!
+  timestamp: BigInt,
+  startBlock: Int
+  endBlock: Int
+}
+
+type StakingEvent @entity {
+  id: ID!
+  userAddress: String! @index
+  transaction: UserTransactionType!
+  contractAddress: String
+  amount: BigInt!
+  timestamp: BigInt! @index
+  blockNumber: BigInt!
+}
+
+enum UserTransactionType {
+  BondAndStake,
+  UnbondAndUnstake,
+  Withdraw,
+  WithdrawFromUnregistered,
+  NominationTransfer
+}
+
+type Era @entity {
+  id: ID! #Era number
+  block: BigInt!
+  timestamp: BigInt!
+}
+
+type Contract @entity {
+  id: ID! #Contrat address
+  registrationEra: BigInt!
+  registrationBlock: BigInt!
+  registrationTimestamp: BigInt!
+  unregistrationEra: BigInt
+  unregistrationTimestamp: BigInt
+  unregistrationBlock: BigInt
+}
+
+type UserTransaction @entity {
+  id: ID!
+  userAddress: String! @index
+  transaction: UserTransactionType!
+  transactionHash: String!
+  transactionSuccess: Boolean!
+  contractAddress: String
+  amount: BigInt
+  timestamp: BigInt! @index
+  blockNumber: BigInt!
+}

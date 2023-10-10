@@ -1,0 +1,12 @@
+{
+  "outDir": "src/types",
+  "specVersions": "https://v2.archive.subsquid.io/metadata/astar",
+  "pallets": {
+    "Balances": {
+      "events": ["Transfer"]
+    },
+    "DappsStaking": {
+      "events": ["BondAndStake", "UnbondAndUnstake", "NominationTransfer"]
+    }
+  }
+}
