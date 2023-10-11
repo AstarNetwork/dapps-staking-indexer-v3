@@ -1,36 +1,35 @@
 import {BigDecimal} from '@subsquid/big-decimal'
 import * as ss58 from '@subsquid/ss58'
-import {SubstrateBatchProcessor} from '@subsquid/substrate-processor'
 import {Bytes} from '@subsquid/substrate-runtime'
 import {TypeormDatabase} from '@subsquid/typeorm-store'
+
 import {Transfer} from './model'
 import {events} from './types'
-
 import {processor} from './processor'
 
-processor.run(new TypeormDatabase(), async ctx => {
-    let transfers: Transfer[] = []
+// supportHotBlocks: true is actually the default, adding it so that it's obvious how to disable it
+processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
+//    let transfers: Transfer[] = []
 
     for (let block of ctx.blocks) {
         for (let event of block.events) {
-            if (event.name == events.balances.transfer.name) {
-                let rec: {from: Bytes, to: Bytes, amount: bigint}
-                if (events.balances.transfer.v1.is(event)) {
-                    let [from, to, amount] = events.balances.transfer.v1.decode(event)
-                    rec = {from, to, amount}
+            if (event.name == events.dappsStaking.bondAndStake.name) {
+                let bondAndStake: {account: string, contractAddr: string, amount: bigint}
+                if (events.dappsStaking.bondAndStake.v4.is(event)) {
+                    let [account, contract, amount] = events.dappsStaking.bondAndStake.v4.decode(event)
+                    bondAndStake = {
+                        account,
+                        contractAddr: contract.value, // regardless of whether if it's WASM or EVM, use contract._kind to process these cases differently
+                        amount
+                    }
                 } else {
-                    rec = events.balances.transfer.v3.decode(event)
+                    ctx.log.error(`Unknown runtime version for a BondAndState event`)
+                    continue
                 }
-                transfers.push(new Transfer({
-                    id: event.id,
-                    from: ss58.codec('astar').encode(rec.from),
-                    to: ss58.codec('astar').encode(rec.to),
-                    amount: BigDecimal(rec.amount, 12),
-                    timestamp: BigInt(block.header.timestamp ?? 0),
-                }))
+                console.log(bondAndStake) // replace with event processing code
             }
         }
     }
 
-    await ctx.store.insert(transfers)
+//    await ctx.store.insert(transfers)
 })

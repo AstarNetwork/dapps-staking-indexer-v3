@@ -1,6 +1,7 @@
 import {SubstrateBatchProcessor} from '@subsquid/substrate-processor'
-import {TypeormDatabase} from '@subsquid/typeorm-store'
 import {lookupArchive} from '@subsquid/archive-registry'
+
+import {events} from './types'
 
 export const processor = new SubstrateBatchProcessor()
     .setDataSource({
@@ -8,10 +9,11 @@ export const processor = new SubstrateBatchProcessor()
         archive: lookupArchive('astar', {type: 'Substrate', release: 'ArrowSquid'})
     })
     .addEvent({
-        name: [events.balances.transfer.name]
-    })
-    .addEvent({
-        name: [events.dappsStaking.bondAndStake.name]
+        name: [
+            events.dappsStaking.bondAndStake.name,
+            events.dappsStaking.nominationTransfer.name,
+            events.dappsStaking.unbondAndUnstake.name
+        ]
     })
     .setFields({
         block: {
