@@ -1,1 +1,7 @@
 export * from "./transfer.model"
+export * from "./callByEra.model"
+export * from "./stakingEvent.model"
+export * from "./_userTransactionType"
+export * from "./era.model"
+export * from "./contract.model"
+export * from "./userTransaction.model"
