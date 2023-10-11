@@ -1,15 +1,11 @@
-import {BigDecimal} from '@subsquid/big-decimal'
-import * as ss58 from '@subsquid/ss58'
 import {SubstrateBatchProcessor} from '@subsquid/substrate-processor'
-import {Bytes} from '@subsquid/substrate-runtime'
 import {TypeormDatabase} from '@subsquid/typeorm-store'
-import {Transfer} from './model'
-import {events} from './types'
+import {lookupArchive} from '@subsquid/archive-registry'
 
 export const processor = new SubstrateBatchProcessor()
     .setDataSource({
         chain: 'https://astar-rpc.dwellir.com',
-        archive: 'https://astar.archive.subsquid.io/graphql'
+        archive: lookupArchive('astar', {type: 'Substrate', release: 'ArrowSquid'})
     })
     .addEvent({
         name: [events.balances.transfer.name]

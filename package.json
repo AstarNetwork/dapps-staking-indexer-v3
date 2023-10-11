@@ -6,13 +6,14 @@
     "build": "rm -rf lib && tsc"
   },
   "dependencies": {
+    "@subsquid/archive-registry": "^3.3.0",
+    "@subsquid/big-decimal": "^1.0.0",
     "@subsquid/graphql-server": "^4.3.1",
     "@subsquid/ss58": "^2.0.1",
     "@subsquid/substrate-processor": "^7.0.0",
     "@subsquid/substrate-runtime": "^1.0.0",
     "@subsquid/typeorm-migration": "^1.2.2",
     "@subsquid/typeorm-store": "^1.2.3",
-    "@subsquid/big-decimal": "^1.0.0",
     "dotenv": "^16.3.1",
     "pg": "^8.11.3",
     "typeorm": "^0.3.17"
