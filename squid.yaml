@@ -1,0 +1,24 @@
+manifestVersion: subsquid.io/v0.1
+name: dapps-staking-v3-indexer
+version: 1
+description: 'ArrowSquid Indexer for Dapps Staking V3'
+build: 
+deploy:
+  addons:
+    postgres: 
+  processor:
+    cmd:
+      - node
+      - src/processor
+  api:
+    cmd:
+      - npx
+      - squid-graphql-server
+      - '--dumb-cache'
+      - in-memory
+      - '--dumb-cache-ttl'
+      - '1000'
+      - '--dumb-cache-size'
+      - '100'
+      - '--dumb-cache-max-age'
+      - '1000'

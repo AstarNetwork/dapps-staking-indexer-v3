@@ -1,6 +1,6 @@
 {
   "outDir": "src/types",
-  "specVersions": "https://v2.archive.subsquid.io/metadata/astar",
+  "specVersions": "astarVersions.jsonl",
   "pallets": {
     "Balances": {
       "events": ["Transfer"]
