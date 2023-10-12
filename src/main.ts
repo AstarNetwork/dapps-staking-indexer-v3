@@ -53,13 +53,28 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
                         account,
                         originAddr: origin.value,
                         amount,
-                        targetAddr: origin.value
+                        targetAddr: target.value
                     }
                 } else {
                     ctx.log.error(`Unknown runtime version for a NominationTransfer event`)
                     continue
                 }
                 console.log('NominationTransfer', decoded) // replace with event processing code
+
+                if (event.block.timestamp) {
+                    let s = {
+                        id: event.id,
+                        userAddress: ss58.codec('astar').encode(decoded.account),
+                        transaction: UserTransactionType.NominationTransfer,
+                        contractAddress: ss58.codec('astar').encode(decoded.targetAddr), // targetAddr as contractAddress?
+                        amount: decoded.amount,
+                        timestamp: BigInt(event.block.timestamp.valueOf()),
+                        blockNumber: BigInt(block.header.height),
+                    }
+
+                    console.log('NominationTransfer', s) // replace with event processing code
+                    stakingEvents.push(s);
+                }
             }
             else if (event.name == events.dappsStaking.unbondAndUnstake.name) {
                 let decoded: {account: string, contractAddr: string, amount: bigint}
@@ -71,10 +86,25 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
                         amount,
                     }
                 } else {
-                    ctx.log.error(`Unknown runtime version for an UnboundAndUnstake event`)
+                    ctx.log.error(`Unknown runtime version for an UnbondAndUnstake event`)
                     continue
                 }
-                console.log('UnboundAndUnstake', decoded) // replace with event processing code
+                console.log('UnbondAndUnstake', decoded) // replace with event processing code
+
+                if (event.block.timestamp) {
+                    let s = {
+                        id: event.id,
+                        userAddress: ss58.codec('astar').encode(decoded.account),
+                        transaction: UserTransactionType.UnbondAndUnstake,
+                        contractAddress: ss58.codec('astar').encode(decoded.contractAddr),
+                        amount: decoded.amount,
+                        timestamp: BigInt(event.block.timestamp.valueOf()),
+                        blockNumber: BigInt(block.header.height),
+                    }
+
+                    console.log('UnbondAndUnstake', s) // replace with event processing code
+                    stakingEvents.push(s);
+                }
             }
         }
     }
