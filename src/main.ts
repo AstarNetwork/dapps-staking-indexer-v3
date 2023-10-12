@@ -3,14 +3,14 @@ import * as ss58 from '@subsquid/ss58'
 import {Bytes} from '@subsquid/substrate-runtime'
 import {TypeormDatabase} from '@subsquid/typeorm-store'
 
-import {Transfer} from './model'
+import {StakingEvent, UserTransactionType} from './model'
 import {events} from './types'
 import {processor} from './processor'
 
 // supportHotBlocks: true is actually the default, adding it so that it's obvious how to disable it
 processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
 
-    // let transfers: Transfer[] = []
+    let stakingEvents: StakingEvent[] = []
 
     for (let block of ctx.blocks) {
         for (let event of block.events) {
@@ -28,6 +28,22 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
                     continue
                 }
                 console.log('BondAndStake', decoded) // replace with event processing code
+
+                if (event.block.timestamp) {
+                    let s = {
+                        id: event.id,
+                        userAddress: ss58.codec('astar').encode(decoded.account),
+                        transaction: UserTransactionType.BondAndStake,
+                        contractAddress: ss58.codec('astar').encode(decoded.contractAddr),
+                        amount: decoded.amount,
+                        timestamp: BigInt(event.block.timestamp.valueOf()),
+                        blockNumber: BigInt(block.header.height),
+                    }
+
+                    console.log('BondAndStake', s) // replace with event processing code
+                    stakingEvents.push(s);
+                }
+
             }
             else if (event.name == events.dappsStaking.nominationTransfer.name) {
                 let decoded: {account: string, originAddr: string, amount: bigint, targetAddr: string}
@@ -63,5 +79,5 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
         }
     }
 
-    // await ctx.store.insert(transfers)
+    await ctx.store.insert(stakingEvents)
 })
