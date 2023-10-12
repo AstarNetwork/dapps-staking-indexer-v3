@@ -20,27 +20,24 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
                     let [account, contract, amount] = events.dappsStaking.bondAndStake.v4.decode(event)
                     decoded = {
                         account,
-                        contractAddr: contract.value, // regardless of whether if it's WASM or EVM, use contract._kind to process these cases differently
+                        contractAddr: contract.value,
                         amount
                     }
                 } else {
                     ctx.log.error(`Unknown runtime version for a BondAndState event`)
                     continue
                 }
-                console.log('BondAndStake', decoded) // replace with event processing code
 
                 if (event.block.timestamp) {
-                    let s = {
+                    let s = new StakingEvent({
                         id: event.id,
-                        userAddress: ss58.codec('astar').encode(decoded.account),
+                        userAddress: decoded.account,
                         transaction: UserTransactionType.BondAndStake,
-                        contractAddress: ss58.codec('astar').encode(decoded.contractAddr),
+                        contractAddress: decoded.contractAddr,
                         amount: decoded.amount,
                         timestamp: BigInt(event.block.timestamp.valueOf()),
                         blockNumber: BigInt(block.header.height),
-                    }
-
-                    console.log('BondAndStake', s) // replace with event processing code
+                    })
                     stakingEvents.push(s);
                 }
 
@@ -59,20 +56,17 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
                     ctx.log.error(`Unknown runtime version for a NominationTransfer event`)
                     continue
                 }
-                console.log('NominationTransfer', decoded) // replace with event processing code
 
                 if (event.block.timestamp) {
-                    let s = {
+                    let s = new StakingEvent({
                         id: event.id,
-                        userAddress: ss58.codec('astar').encode(decoded.account),
+                        userAddress: decoded.account,
                         transaction: UserTransactionType.NominationTransfer,
-                        contractAddress: ss58.codec('astar').encode(decoded.targetAddr), // targetAddr as contractAddress?
+                        contractAddress: decoded.targetAddr, // targetAddr as contractAddress?
                         amount: decoded.amount,
                         timestamp: BigInt(event.block.timestamp.valueOf()),
                         blockNumber: BigInt(block.header.height),
-                    }
-
-                    console.log('NominationTransfer', s) // replace with event processing code
+                    })
                     stakingEvents.push(s);
                 }
             }
@@ -89,20 +83,17 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
                     ctx.log.error(`Unknown runtime version for an UnbondAndUnstake event`)
                     continue
                 }
-                console.log('UnbondAndUnstake', decoded) // replace with event processing code
 
                 if (event.block.timestamp) {
-                    let s = {
+                    let s = new StakingEvent({
                         id: event.id,
-                        userAddress: ss58.codec('astar').encode(decoded.account),
+                        userAddress: decoded.account,
                         transaction: UserTransactionType.UnbondAndUnstake,
-                        contractAddress: ss58.codec('astar').encode(decoded.contractAddr),
+                        contractAddress: decoded.contractAddr,
                         amount: decoded.amount,
                         timestamp: BigInt(event.block.timestamp.valueOf()),
                         blockNumber: BigInt(block.header.height),
-                    }
-
-                    console.log('UnbondAndUnstake', s) // replace with event processing code
+                    })
                     stakingEvents.push(s);
                 }
             }
