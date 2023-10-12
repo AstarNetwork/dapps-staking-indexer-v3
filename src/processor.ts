@@ -5,7 +5,7 @@ import {events} from './types'
 
 export const processor = new SubstrateBatchProcessor()
     .setDataSource({
-        chain: 'https://astar-rpc.dwellir.com',
+        chain: 'https://astar.api.onfinality.io/public',
         archive: lookupArchive('astar', {type: 'Substrate', release: 'ArrowSquid'})
     })
     .addEvent({
