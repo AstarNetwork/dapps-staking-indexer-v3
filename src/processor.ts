@@ -1,4 +1,8 @@
-import {SubstrateBatchProcessor} from '@subsquid/substrate-processor'
+import {
+    SubstrateBatchProcessor,
+    SubstrateBatchProcessorFields,
+    DataHandlerContext
+} from '@subsquid/substrate-processor'
 import {lookupArchive} from '@subsquid/archive-registry'
 
 import {events} from './types'
@@ -21,3 +25,6 @@ export const processor = new SubstrateBatchProcessor()
         }
     })
     .setBlockRange({from: 4_342_300})
+
+export type Fields = SubstrateBatchProcessorFields<typeof processor>
+export type ProcessorContext<Store> = DataHandlerContext<Store, Fields>

@@ -1,11 +1,12 @@
-import {BigDecimal} from '@subsquid/big-decimal'
 import * as ss58 from '@subsquid/ss58'
 import {Bytes} from '@subsquid/substrate-runtime'
-import {TypeormDatabase} from '@subsquid/typeorm-store'
+import {TypeormDatabase, Store} from '@subsquid/typeorm-store'
+import {Equal, MoreThanOrEqual} from 'typeorm'
 
-import {StakingEvent, UserTransactionType} from './model'
+import {GroupedStakingEvent, StakingEvent, UserTransactionType} from './model'
 import {events} from './types'
-import {processor} from './processor'
+import {processor, ProcessorContext} from './processor'
+import {getDayIdentifier, getFirstTimestampOfTheNextDay, getFirstTimestampOfTheDay} from './utils'
 
 // supportHotBlocks: true is actually the default, adding it so that it's obvious how to disable it
 processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
@@ -100,5 +101,57 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
         }
     }
 
+    const bnsGroupedStakingEvents = await getGroupedStakingEvents(UserTransactionType.BondAndStake, stakingEvents, ctx)
+    const unuGroupedStakingEvents = await getGroupedStakingEvents(UserTransactionType.UnbondAndUnstake, stakingEvents, ctx)
+    const ntGroupedStakingEvents = await getGroupedStakingEvents(UserTransactionType.NominationTransfer, stakingEvents, ctx)
+    await ctx.store.insert(
+        bnsGroupedStakingEvents
+            .concat(unuGroupedStakingEvents)
+            .concat(ntGroupedStakingEvents)
+    )
     await ctx.store.insert(stakingEvents)
 })
+
+async function getGroupedStakingEvents(txType: UserTransactionType, stakingEvents: StakingEvent[], ctx: ProcessorContext<Store>): Promise<GroupedStakingEvent[]> {
+    const events = stakingEvents.filter(e => e.transaction===txType)
+    if (events.length === 0) {
+        return []
+    }
+
+    let ungroupedTimestampsFrom = getFirstTimestampOfTheDay(Number(events[0].timestamp))
+    let ungroupedStakingEvents = stakingEvents
+
+    let lastGroupedStakingEvent = await ctx.store.find(GroupedStakingEvent, {order: {timestamp: 'DESC'}, take: 1, where: {transaction: txType}})
+    if (lastGroupedStakingEvent.length>0) {
+        ungroupedTimestampsFrom = getFirstTimestampOfTheNextDay(Number(lastGroupedStakingEvent[0].timestamp))
+        let savedUngroupedStakingEvents = await ctx.store.findBy(StakingEvent, {transaction: Equal(txType), timestamp: MoreThanOrEqual(BigInt(ungroupedTimestampsFrom))})
+        ungroupedStakingEvents = savedUngroupedStakingEvents.concat(stakingEvents)
+        // console.log(`${txType}: Got ${savedUngroupedStakingEvents.length} saved staking events from the database - total length is ${ungroupedStakingEvents.length}`)
+    }
+
+    const out: GroupedStakingEvent[] = []
+
+    let currentDay = getDayIdentifier(ungroupedTimestampsFrom)
+    let amount = 0n
+    for (let usevent of ungroupedStakingEvents) {
+        let newCurrentDay = getDayIdentifier(Number(usevent.timestamp))
+        if (newCurrentDay == currentDay) {
+            amount += usevent.amount
+        }
+        else {
+            while (currentDay !== newCurrentDay) {
+                // console.log(`${txType}: Adding GSE for the day starting at ${new Date(ungroupedTimestampsFrom*1000)}`)
+                out.push(new GroupedStakingEvent({
+                    id: `${ungroupedTimestampsFrom}-${txType}`,
+                    transaction: txType,
+                    amount,
+                    timestamp: BigInt(ungroupedTimestampsFrom)
+                }))
+                ungroupedTimestampsFrom = getFirstTimestampOfTheNextDay(ungroupedTimestampsFrom)
+                currentDay = getDayIdentifier(ungroupedTimestampsFrom)
+                amount = 0n
+            }
+        }
+    }
+    return out
+}
