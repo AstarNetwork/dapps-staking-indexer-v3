@@ -1,3 +1,4 @@
+import assert from 'assert'
 import * as ss58 from '@subsquid/ss58'
 import {Bytes} from '@subsquid/substrate-runtime'
 import {TypeormDatabase, Store} from '@subsquid/typeorm-store'
@@ -14,6 +15,7 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
     let stakingEvents: StakingEvent[] = []
 
     for (let block of ctx.blocks) {
+        assert(block.header.timestamp, `Got an undefined timestamp for block ${block.header.height}`)
         for (let event of block.events) {
             if (event.name == events.dappsStaking.bondAndStake.name) {
                 let decoded: {account: string, contractAddr: string, amount: bigint}
@@ -29,19 +31,16 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
                     continue
                 }
 
-                if (event.block.timestamp) {
-                    let s = new StakingEvent({
-                        id: event.id,
-                        userAddress: decoded.account,
-                        transaction: UserTransactionType.BondAndStake,
-                        contractAddress: decoded.contractAddr,
-                        amount: decoded.amount,
-                        timestamp: BigInt(event.block.timestamp.valueOf()),
-                        blockNumber: BigInt(block.header.height),
-                    })
-                    stakingEvents.push(s);
-                }
-
+                let s = new StakingEvent({
+                    id: event.id,
+                    userAddress: decoded.account,
+                    transaction: UserTransactionType.BondAndStake,
+                    contractAddress: decoded.contractAddr,
+                    amount: decoded.amount,
+                    timestamp: BigInt(block.header.timestamp),
+                    blockNumber: BigInt(block.header.height),
+                })
+                stakingEvents.push(s);
             }
             else if (event.name == events.dappsStaking.nominationTransfer.name) {
                 let decoded: {account: string, originAddr: string, amount: bigint, targetAddr: string}
@@ -58,18 +57,16 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
                     continue
                 }
 
-                if (event.block.timestamp) {
-                    let s = new StakingEvent({
-                        id: event.id,
-                        userAddress: decoded.account,
-                        transaction: UserTransactionType.NominationTransfer,
-                        contractAddress: decoded.targetAddr, // targetAddr as contractAddress?
-                        amount: decoded.amount,
-                        timestamp: BigInt(event.block.timestamp.valueOf()),
-                        blockNumber: BigInt(block.header.height),
-                    })
-                    stakingEvents.push(s);
-                }
+                let s = new StakingEvent({
+                    id: event.id,
+                    userAddress: decoded.account,
+                    transaction: UserTransactionType.NominationTransfer,
+                    contractAddress: decoded.targetAddr, // targetAddr as contractAddress?
+                    amount: decoded.amount,
+                    timestamp: BigInt(block.header.timestamp),
+                    blockNumber: BigInt(block.header.height),
+                })
+                stakingEvents.push(s);
             }
             else if (event.name == events.dappsStaking.unbondAndUnstake.name) {
                 let decoded: {account: string, contractAddr: string, amount: bigint}
@@ -85,18 +82,16 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
                     continue
                 }
 
-                if (event.block.timestamp) {
-                    let s = new StakingEvent({
-                        id: event.id,
-                        userAddress: decoded.account,
-                        transaction: UserTransactionType.UnbondAndUnstake,
-                        contractAddress: decoded.contractAddr,
-                        amount: decoded.amount,
-                        timestamp: BigInt(event.block.timestamp.valueOf()),
-                        blockNumber: BigInt(block.header.height),
-                    })
-                    stakingEvents.push(s);
-                }
+                let s = new StakingEvent({
+                    id: event.id,
+                    userAddress: decoded.account,
+                    transaction: UserTransactionType.UnbondAndUnstake,
+                    contractAddress: decoded.contractAddr,
+                    amount: decoded.amount,
+                    timestamp: BigInt(block.header.timestamp),
+                    blockNumber: BigInt(block.header.height),
+                })
+                stakingEvents.push(s);
             }
         }
     }
@@ -140,7 +135,7 @@ async function getGroupedStakingEvents(txType: UserTransactionType, stakingEvent
         }
         else {
             while (currentDay !== newCurrentDay) {
-                // console.log(`${txType}: Adding GSE for the day starting at ${new Date(ungroupedTimestampsFrom*1000)}`)
+                // console.log(`${txType}: Adding GSE for the day starting at ${new Date(ungroupedTimestampsFrom)}`)
                 out.push(new GroupedStakingEvent({
                     id: `${ungroupedTimestampsFrom}-${txType}`,
                     transaction: txType,
