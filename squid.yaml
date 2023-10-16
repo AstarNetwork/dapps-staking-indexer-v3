@@ -1,5 +1,5 @@
 manifestVersion: subsquid.io/v0.1
-name: dapps-staking-indexer-v3
+name: dapps-staking-indexer
 version: 1
 description: 'ArrowSquid Indexer for Dapps Staking V3'
 build: 
@@ -9,7 +9,7 @@ deploy:
   processor:
     cmd:
       - node
-      - src/processor
+      - lib/processor
   api:
     cmd:
       - npx
