@@ -114,13 +114,13 @@ async function getGroupedStakingEvents(txType: UserTransactionType, stakingEvent
     }
 
     let ungroupedTimestampsFrom = getFirstTimestampOfTheDay(Number(events[0].timestamp))
-    let ungroupedStakingEvents = stakingEvents
+    let ungroupedStakingEvents = events
 
     let lastGroupedStakingEvent = await ctx.store.find(GroupedStakingEvent, {order: {timestamp: 'DESC'}, take: 1, where: {transaction: txType}})
     if (lastGroupedStakingEvent.length>0) {
         ungroupedTimestampsFrom = getFirstTimestampOfTheNextDay(Number(lastGroupedStakingEvent[0].timestamp))
         let savedUngroupedStakingEvents = await ctx.store.findBy(StakingEvent, {transaction: Equal(txType), timestamp: MoreThanOrEqual(BigInt(ungroupedTimestampsFrom))})
-        ungroupedStakingEvents = savedUngroupedStakingEvents.concat(stakingEvents)
+        ungroupedStakingEvents = savedUngroupedStakingEvents.concat(events)
         // console.log(`${txType}: Got ${savedUngroupedStakingEvents.length} saved staking events from the database - total length is ${ungroupedStakingEvents.length}`)
     }
 
