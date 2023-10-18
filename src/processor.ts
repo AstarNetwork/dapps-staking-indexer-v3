@@ -14,6 +14,8 @@ export const processor = new SubstrateBatchProcessor()
     })
     .addEvent({
         name: [
+            events.dappsStaking.withdrawn.name,
+            events.dappsStaking.withdrawFromUnregistered.name,
             events.dappsStaking.bondAndStake.name,
             events.dappsStaking.nominationTransfer.name,
             events.dappsStaking.unbondAndUnstake.name

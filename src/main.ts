@@ -68,6 +68,54 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
                 })
                 stakingEvents.push(s);
             }
+            else if (event.name == events.dappsStaking.withdrawn.name) {
+                let decoded: {account: string, amount: bigint}
+                if (events.dappsStaking.withdrawn.v12.is(event)) {
+                    let [account, amount] = events.dappsStaking.withdrawn.v12.decode(event)
+                    decoded = {
+                        account,
+                        amount
+                    }
+                } else {
+                    ctx.log.error(`Unknown runtime version for a Withdrawn event`)
+                    continue
+                }
+
+                let s = new StakingEvent({
+                    id: event.id,
+                    userAddress: decoded.account,
+                    transaction: UserTransactionType.Withdraw,
+                    amount: decoded.amount,
+                    timestamp: BigInt(block.header.timestamp),
+                    blockNumber: BigInt(block.header.height),
+                })
+                stakingEvents.push(s);
+            }
+            else if (event.name == events.dappsStaking.withdrawFromUnregistered.name) {
+                let decoded: {account: string, contractAddr: string, amount: bigint}
+                if (events.dappsStaking.withdrawFromUnregistered.v12.is(event)) {
+                    let [account, contract, amount] = events.dappsStaking.withdrawFromUnregistered.v12.decode(event)
+                    decoded = {
+                        account,
+                        contractAddr: contract.value,
+                        amount
+                    }
+                } else {
+                    ctx.log.error(`Unknown runtime version for a WithdrawFromUnregistered event`)
+                    continue
+                }
+
+                let s = new StakingEvent({
+                    id: event.id,
+                    userAddress: decoded.account,
+                    transaction: UserTransactionType.WithdrawFromUnregistered,
+                    contractAddress: decoded.contractAddr,
+                    amount: decoded.amount,
+                    timestamp: BigInt(block.header.timestamp),
+                    blockNumber: BigInt(block.header.height),
+                })
+                stakingEvents.push(s);
+            }
             else if (event.name == events.dappsStaking.unbondAndUnstake.name) {
                 let decoded: {account: string, contractAddr: string, amount: bigint}
                 if (events.dappsStaking.unbondAndUnstake.v12.is(event)) {
@@ -99,10 +147,14 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
     const bnsGroupedStakingEvents = await getGroupedStakingEvents(UserTransactionType.BondAndStake, stakingEvents, ctx)
     const unuGroupedStakingEvents = await getGroupedStakingEvents(UserTransactionType.UnbondAndUnstake, stakingEvents, ctx)
     const ntGroupedStakingEvents = await getGroupedStakingEvents(UserTransactionType.NominationTransfer, stakingEvents, ctx)
+    const wGroupedStakingEvents = await getGroupedStakingEvents(UserTransactionType.Withdraw, stakingEvents, ctx)
+    const wfuGroupedStakingEvents = await getGroupedStakingEvents(UserTransactionType.WithdrawFromUnregistered, stakingEvents, ctx)
     await ctx.store.insert(
         bnsGroupedStakingEvents
             .concat(unuGroupedStakingEvents)
             .concat(ntGroupedStakingEvents)
+            .concat(wGroupedStakingEvents)
+            .concat(wfuGroupedStakingEvents)
     )
     await ctx.store.insert(stakingEvents)
 })
