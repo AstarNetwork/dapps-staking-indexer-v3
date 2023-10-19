@@ -1,24 +1,14 @@
 version: "3"
 
 services:
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "${REDIS_PORT}:6379"
   db:
     image: postgres:15
     environment:
-      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_DB: squid
       POSTGRES_PASSWORD: postgres
+    shm_size: 1gb
     ports:
       - "${DB_PORT}:5432"
       # command: ["postgres", "-c", "log_statement=all"]
-
-#  cockroach:
-#    image: cockroachdb/cockroach:v21.2.9
-#    ports:
-#      - "${DB_PORT}:26257"
-#    command: [
-#      "start-single-node",
-#      "--insecure"
-#    ]
+#    volumes:
+#      - ./data/db:/var/lib/postgresql/data
