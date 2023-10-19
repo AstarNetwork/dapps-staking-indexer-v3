@@ -196,7 +196,7 @@ async function getGroupedStakingEvents(txType: UserTransactionType, stakingEvent
                 }))
                 ungroupedTimestampsFrom = getFirstTimestampOfTheNextDay(ungroupedTimestampsFrom)
                 currentDay = getDayIdentifier(ungroupedTimestampsFrom)
-                amount = 0n
+                amount = currentDay===newCurrentDay ? usevent.amount : 0n
             }
         }
     }
