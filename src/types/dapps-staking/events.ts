@@ -1,4 +1,4 @@
-import {sts, Block, Bytes, Option, Result, EventType} from '../support'
+import {sts, Block, Bytes, Option, Result, EventType, RuntimeCtx} from '../support'
 import * as v4 from '../v4'
 import * as v12 from '../v12'
 import * as v17 from '../v17'
@@ -22,6 +22,28 @@ export const unbondAndUnstake =  {
     v12: new EventType(
         'DappsStaking.UnbondAndUnstake',
         sts.tuple([v12.AccountId32, v12.SmartContract, sts.bigint()])
+    ),
+}
+
+export const withdrawFromUnregistered =  {
+    name: 'DappsStaking.WithdrawFromUnregistered',
+    /**
+     * Account has fully withdrawn all staked amount from an unregistered contract.
+     */
+    v12: new EventType(
+        'DappsStaking.WithdrawFromUnregistered',
+        sts.tuple([v12.AccountId32, v12.SmartContract, sts.bigint()])
+    ),
+}
+
+export const withdrawn =  {
+    name: 'DappsStaking.Withdrawn',
+    /**
+     * Account has withdrawn unbonded funds.
+     */
+    v12: new EventType(
+        'DappsStaking.Withdrawn',
+        sts.tuple([v12.AccountId32, sts.bigint()])
     ),
 }
 
