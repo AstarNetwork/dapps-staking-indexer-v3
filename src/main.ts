@@ -1,6 +1,5 @@
 import assert from 'assert'
 import * as ss58 from '@subsquid/ss58'
-import {Bytes} from '@subsquid/substrate-runtime'
 import {TypeormDatabase, Store} from '@subsquid/typeorm-store'
 import {Equal, MoreThanOrEqual} from 'typeorm'
 
@@ -23,7 +22,7 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
                     let [account, contract, amount] = events.dappsStaking.bondAndStake.v4.decode(event)
                     decoded = {
                         account,
-                        contractAddr: contract.value,
+                        contractAddr: contract.__kind === "Evm" ? contract.value : ss58.encode({prefix:5, bytes:contract.value}),
                         amount
                     }
                 } else {
@@ -33,7 +32,7 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
 
                 let s = new StakingEvent({
                     id: event.id,
-                    userAddress: decoded.account,
+                    userAddress: ss58.encode({prefix:5, bytes:decoded.account}),
                     transaction: UserTransactionType.BondAndStake,
                     contractAddress: decoded.contractAddr,
                     amount: decoded.amount,
@@ -48,9 +47,9 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
                     let [account, origin, amount, target] = events.dappsStaking.nominationTransfer.v17.decode(event)
                     decoded = {
                         account,
-                        originAddr: origin.value,
+                        originAddr: origin.__kind === "Evm" ? origin.value : ss58.encode({prefix:5, bytes:origin.value}),
                         amount,
-                        targetAddr: target.value
+                        targetAddr: target.__kind === "Evm" ? target.value : ss58.encode({prefix:5, bytes:target.value})
                     }
                 } else {
                     ctx.log.error(`Unknown runtime version for a NominationTransfer event`)
@@ -59,7 +58,7 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
 
                 let s = new StakingEvent({
                     id: event.id,
-                    userAddress: decoded.account,
+                    userAddress: ss58.encode({prefix:5, bytes:decoded.account}),
                     transaction: UserTransactionType.NominationTransfer,
                     contractAddress: decoded.targetAddr, // targetAddr as contractAddress?
                     amount: decoded.amount,
@@ -83,7 +82,7 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
 
                 let s = new StakingEvent({
                     id: event.id,
-                    userAddress: decoded.account,
+                    userAddress: ss58.encode({prefix:5, bytes:decoded.account}),
                     transaction: UserTransactionType.Withdraw,
                     amount: decoded.amount,
                     timestamp: BigInt(block.header.timestamp),
@@ -97,7 +96,7 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
                     let [account, contract, amount] = events.dappsStaking.withdrawFromUnregistered.v12.decode(event)
                     decoded = {
                         account,
-                        contractAddr: contract.value,
+                        contractAddr: contract.__kind === "Evm" ? contract.value : ss58.encode({prefix:5, bytes:contract.value}),
                         amount
                     }
                 } else {
@@ -107,7 +106,7 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
 
                 let s = new StakingEvent({
                     id: event.id,
-                    userAddress: decoded.account,
+                    userAddress: ss58.encode({prefix:5, bytes:decoded.account}),
                     transaction: UserTransactionType.WithdrawFromUnregistered,
                     contractAddress: decoded.contractAddr,
                     amount: decoded.amount,
@@ -122,7 +121,7 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
                     let [account, contract, amount] = events.dappsStaking.unbondAndUnstake.v12.decode(event)
                     decoded = {
                         account,
-                        contractAddr: contract.value,
+                        contractAddr: contract.__kind === "Evm" ? contract.value : ss58.encode({prefix:5, bytes:contract.value}),
                         amount,
                     }
                 } else {
@@ -132,7 +131,7 @@ processor.run(new TypeormDatabase({supportHotBlocks: true}), async ctx => {
 
                 let s = new StakingEvent({
                     id: event.id,
-                    userAddress: decoded.account,
+                    userAddress: ss58.encode({prefix:5, bytes:decoded.account}),
                     transaction: UserTransactionType.UnbondAndUnstake,
                     contractAddress: decoded.contractAddr,
                     amount: decoded.amount,
