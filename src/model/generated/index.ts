@@ -1,3 +1,7 @@
 export * from "./stakingEvent.model"
 export * from "./_userTransactionType"
 export * from "./groupedStakingEvent.model"
+export * from "./dapp.model"
+export * from "./_dappState"
+export * from "./tvlAggregatedDaily.model"
+export * from "./stake.model"
