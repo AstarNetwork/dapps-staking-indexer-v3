@@ -22,3 +22,38 @@ enum UserTransactionType {
   WithdrawFromUnregistered,
   NominationTransfer
 }
+
+enum DappState {
+  Registered,
+  Unregistered,
+}
+
+type Dapp @entity {
+  # dApp address
+  id: ID!
+  # dApp id
+  dappId: Int!
+  owner: String!
+  # dApp reward received address
+  beneficiary: String
+  state: DappState!
+  registeredAt: BigInt!
+  registrationBlockNumber: Int!
+  unregisteredAt: BigInt
+  unregistrationBlockNumber: Int
+  stakersCount: Int!
+}
+
+type TvlAggregatedDaily @entity {
+  id: ID!
+  tvl: BigInt!
+}
+
+type Stake @entity {
+  id: ID!
+  dappAddress: String!
+  stakerAddress: String!
+  amount: BigInt!
+  timestamp: BigInt!
+  blockNumber: Int!
+}
