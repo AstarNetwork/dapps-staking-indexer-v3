@@ -38,6 +38,8 @@ sqd serve
 On schema changes:
 
 ```bash
+npm generate-metadata
+sqd typegen
 sqd codegen
 sqd build # modify your squid to use the new schema until it builds
 sqd down; sqd up
