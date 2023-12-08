@@ -18,7 +18,48 @@ import {
 // supportHotBlocks: true is actually the default, adding it so that it's obvious how to disable it
 processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
   let stakingEvents: StakingEvent[] = [];
+  await handleEvents(ctx, stakingEvents);
 
+  const bnsGroupedStakingEvents = await getGroupedStakingEvents(
+    UserTransactionType.BondAndStake,
+    stakingEvents,
+    ctx
+  );
+  const unuGroupedStakingEvents = await getGroupedStakingEvents(
+    UserTransactionType.UnbondAndUnstake,
+    stakingEvents,
+    ctx
+  );
+  const ntGroupedStakingEvents = await getGroupedStakingEvents(
+    UserTransactionType.NominationTransfer,
+    stakingEvents,
+    ctx
+  );
+  const wGroupedStakingEvents = await getGroupedStakingEvents(
+    UserTransactionType.Withdraw,
+    stakingEvents,
+    ctx
+  );
+  const wfuGroupedStakingEvents = await getGroupedStakingEvents(
+    UserTransactionType.WithdrawFromUnregistered,
+    stakingEvents,
+    ctx
+  );
+
+  await ctx.store.insert(
+    bnsGroupedStakingEvents
+      .concat(unuGroupedStakingEvents)
+      .concat(ntGroupedStakingEvents)
+      .concat(wGroupedStakingEvents)
+      .concat(wfuGroupedStakingEvents)
+  );
+  await ctx.store.insert(stakingEvents);
+});
+
+async function handleEvents(
+  ctx: ProcessorContext<Store>,
+  stakingEvents: StakingEvent[]
+) {
   for (let block of ctx.blocks) {
     assert(
       block.header.timestamp,
@@ -188,46 +229,12 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
           break;
 
         default:
-          ctx.log.error(`Unknown event name: ${event.name}`);
+          ctx.log.warn(`Unhandled event: ${event.name}`);
           continue;
       }
     }
   }
-
-  const bnsGroupedStakingEvents = await getGroupedStakingEvents(
-    UserTransactionType.BondAndStake,
-    stakingEvents,
-    ctx
-  );
-  const unuGroupedStakingEvents = await getGroupedStakingEvents(
-    UserTransactionType.UnbondAndUnstake,
-    stakingEvents,
-    ctx
-  );
-  const ntGroupedStakingEvents = await getGroupedStakingEvents(
-    UserTransactionType.NominationTransfer,
-    stakingEvents,
-    ctx
-  );
-  const wGroupedStakingEvents = await getGroupedStakingEvents(
-    UserTransactionType.Withdraw,
-    stakingEvents,
-    ctx
-  );
-  const wfuGroupedStakingEvents = await getGroupedStakingEvents(
-    UserTransactionType.WithdrawFromUnregistered,
-    stakingEvents,
-    ctx
-  );
-  await ctx.store.insert(
-    bnsGroupedStakingEvents
-      .concat(unuGroupedStakingEvents)
-      .concat(ntGroupedStakingEvents)
-      .concat(wGroupedStakingEvents)
-      .concat(wfuGroupedStakingEvents)
-  );
-  await ctx.store.insert(stakingEvents);
-});
+}
 
 async function getGroupedStakingEvents(
   txType: UserTransactionType,
