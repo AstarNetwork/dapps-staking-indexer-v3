@@ -64,6 +64,11 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
       .concat(wfuGroupedStakingEvents)
   );
   await ctx.store.insert(entities.stakingEvent);
+  await ctx.store.insert(entities.DappsToInsert);
+  await ctx.store.upsert(entities.DappsToUpdate);
+  await ctx.store.insert(entities.TvlToInsert);
+  await ctx.store.upsert(entities.TvlToUpdate);
+  await ctx.store.insert(entities.StakesToInsert);
 });
 
 async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
@@ -236,35 +241,32 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           break;
 
         case events.dappStaking.dAppRegistered.name:
-          entities.DappsToInsert.push((registerDapp)(event));
+          entities.DappsToInsert.push(registerDapp(event));
           break;
         case events.dappStaking.dAppUnregistered.name:
-          const unregisteredDapp = await (unregisterDapp)(ctx, event);
+          const unregisteredDapp = await unregisterDapp(ctx, event);
           unregisteredDapp && entities.DappsToUpdate.push(unregisteredDapp);
           break;
         case events.dappStaking.dAppOwnerChanged.name:
-          const ownerChangedDapp = await (updateOwner)(ctx, event);
+          const ownerChangedDapp = await updateOwner(ctx, event);
           ownerChangedDapp && entities.DappsToUpdate.push(ownerChangedDapp);
           break;
         case events.dappStaking.dAppRewardDestinationUpdated.name:
-          const beneficiaryChangedDapp = await (updateBeneficiary)(
-            ctx,
-            event
-          );
+          const beneficiaryChangedDapp = await updateBeneficiary(ctx, event);
           beneficiaryChangedDapp &&
             entities.DappsToUpdate.push(beneficiaryChangedDapp);
           break;
         case events.dappStaking.locked.name:
         case events.dappStaking.unlocking.name:
         case events.dappStaking.relock.name:
-          await (handleTvl)(ctx, event, entities);
+          await handleTvl(ctx, event, entities);
           break;
         case events.dappStaking.stake.name:
         case events.dappStaking.unstake.name:
         case events.dappStaking.unstakeFromUnregistered.name:
-          const stake = (getStake)(event);
+          const stake = getStake(event);
           entities.StakesToInsert.push(stake);
-          const dapp = await (handleStakersCount)(ctx, stake);
+          const dapp = await handleStakersCount(ctx, stake);
           dapp && entities.DappsToUpdate.push(dapp);
           break;
 
