@@ -10,39 +10,49 @@ import {
 import { events } from "./types";
 import { processor, ProcessorContext } from "./processor";
 import {
+  Entities,
   getDayIdentifier,
   getFirstTimestampOfTheNextDay,
   getFirstTimestampOfTheDay,
 } from "./utils";
+import {
+  updateOwner,
+  registerDapp,
+  unregisterDapp,
+  updateBeneficiary,
+  handleTvl,
+  handleStakersCount,
+} from "./mapping";
+import { getStake } from "./mapping/stake";
 
 // supportHotBlocks: true is actually the default, adding it so that it's obvious how to disable it
 processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
-  let stakingEvents: StakingEvent[] = [];
-  await handleEvents(ctx, stakingEvents);
+  const entities = new Entities();
+  await handleEvents(ctx, entities);
 
   const bnsGroupedStakingEvents = await getGroupedStakingEvents(
     UserTransactionType.BondAndStake,
-    stakingEvents,
+    entities.stakingEvent,
     ctx
   );
   const unuGroupedStakingEvents = await getGroupedStakingEvents(
     UserTransactionType.UnbondAndUnstake,
-    stakingEvents,
+    entities.stakingEvent,
     ctx
   );
   const ntGroupedStakingEvents = await getGroupedStakingEvents(
     UserTransactionType.NominationTransfer,
-    stakingEvents,
+    entities.stakingEvent,
     ctx
   );
   const wGroupedStakingEvents = await getGroupedStakingEvents(
     UserTransactionType.Withdraw,
-    stakingEvents,
+    entities.stakingEvent,
     ctx
   );
   const wfuGroupedStakingEvents = await getGroupedStakingEvents(
     UserTransactionType.WithdrawFromUnregistered,
-    stakingEvents,
+    entities.stakingEvent,
     ctx
   );
 
@@ -53,13 +63,10 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
       .concat(wGroupedStakingEvents)
       .concat(wfuGroupedStakingEvents)
   );
-  await ctx.store.insert(stakingEvents);
+  await ctx.store.insert(entities.stakingEvent);
 });
 
-async function handleEvents(
-  ctx: ProcessorContext<Store>,
-  stakingEvents: StakingEvent[]
-) {
+async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
   for (let block of ctx.blocks) {
     assert(
       block.header.timestamp,
@@ -85,7 +92,7 @@ async function handleEvents(
             continue;
           }
 
-          stakingEvents.push(
+          entities.stakingEvent.push(
             new StakingEvent({
               id: event.id,
               userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
@@ -122,7 +129,7 @@ async function handleEvents(
             continue;
           }
 
-          stakingEvents.push(
+          entities.stakingEvent.push(
             new StakingEvent({
               id: event.id,
               userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
@@ -149,7 +156,7 @@ async function handleEvents(
             continue;
           }
 
-          stakingEvents.push(
+          entities.stakingEvent.push(
             new StakingEvent({
               id: event.id,
               userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
@@ -181,7 +188,7 @@ async function handleEvents(
             continue;
           }
 
-          stakingEvents.push(
+          entities.stakingEvent.push(
             new StakingEvent({
               id: event.id,
               userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
@@ -214,7 +221,7 @@ async function handleEvents(
             continue;
           }
 
-          stakingEvents.push(
+          entities.stakingEvent.push(
             new StakingEvent({
               id: event.id,
               userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
@@ -226,6 +233,39 @@ async function handleEvents(
             })
           );
 
+          break;
+
+        case events.dappStaking.dAppRegistered.name:
+          entities.DappsToInsert.push((registerDapp)(event));
+          break;
+        case events.dappStaking.dAppUnregistered.name:
+          const unregisteredDapp = await (unregisterDapp)(ctx, event);
+          unregisteredDapp && entities.DappsToUpdate.push(unregisteredDapp);
+          break;
+        case events.dappStaking.dAppOwnerChanged.name:
+          const ownerChangedDapp = await (updateOwner)(ctx, event);
+          ownerChangedDapp && entities.DappsToUpdate.push(ownerChangedDapp);
+          break;
+        case events.dappStaking.dAppRewardDestinationUpdated.name:
+          const beneficiaryChangedDapp = await (updateBeneficiary)(
+            ctx,
+            event
+          );
+          beneficiaryChangedDapp &&
+            entities.DappsToUpdate.push(beneficiaryChangedDapp);
+          break;
+        case events.dappStaking.locked.name:
+        case events.dappStaking.unlocking.name:
+        case events.dappStaking.relock.name:
+          await (handleTvl)(ctx, event, entities);
+          break;
+        case events.dappStaking.stake.name:
+        case events.dappStaking.unstake.name:
+        case events.dappStaking.unstakeFromUnregistered.name:
+          const stake = (getStake)(event);
+          entities.StakesToInsert.push(stake);
+          const dapp = await (handleStakersCount)(ctx, stake);
+          dapp && entities.DappsToUpdate.push(dapp);
           break;
 
         default:

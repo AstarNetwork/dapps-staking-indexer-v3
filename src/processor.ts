@@ -1,7 +1,11 @@
 import {
+    BlockHeader,
     SubstrateBatchProcessor,
     SubstrateBatchProcessorFields,
-    DataHandlerContext
+    DataHandlerContext,
+    Event as _Event,
+    Call as _Call,
+    Extrinsic as _Extrinsic
 } from '@subsquid/substrate-processor'
 import {lookupArchive} from '@subsquid/archive-registry'
 
@@ -29,4 +33,8 @@ export const processor = new SubstrateBatchProcessor()
     .setBlockRange({from: 4_342_300})
 
 export type Fields = SubstrateBatchProcessorFields<typeof processor>
+export type Block = BlockHeader<Fields>
+export type Event = _Event<Fields>
+export type Call = _Call<Fields>
+export type Extrinsic = _Extrinsic<Fields>
 export type ProcessorContext<Store> = DataHandlerContext<Store, Fields>
