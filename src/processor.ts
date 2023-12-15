@@ -34,6 +34,7 @@ export const processor = new SubstrateBatchProcessor()
             events.dappStaking.dAppRewardDestinationUpdated.name,
             events.dappStaking.locked.name,
             events.dappStaking.unlocking.name,
+            // events.dappStaking.claimedUnlocked.name,
             events.dappStaking.relock.name,
             events.dappStaking.stake.name,
             events.dappStaking.unstake.name,

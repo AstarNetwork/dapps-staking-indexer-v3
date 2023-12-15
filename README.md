@@ -38,12 +38,12 @@ sqd serve
 On schema changes:
 
 ```bash
-npm generate-metadata
+npm generate-metadata # for local node development
 sqd typegen
 sqd codegen
 sqd build # modify your squid to use the new schema until it builds
 sqd down; sqd up
-sqd migration:generate
+sqd migration:generate # rerun everytime there is a change to the schema
 ```
 
 This drops then re-creates the database and regenerates any migrations.
