@@ -82,7 +82,7 @@ export async function handleStakersCount(
   stakes.push(stake); // Current stake is not yet in the db.
   const day = getFirstTimestampOfTheDay(event.block.timestamp ?? 0);
   const found = await ctx.store.findOneBy(DappAggregatedDaily, {
-    id: day.toString(),
+    timestamp: BigInt(day), dappAddress: stake.dappAddress
   });
 
   const totalStake = stakes.reduce((a, b) => a + b.amount, 0n);
@@ -98,7 +98,8 @@ export async function handleStakersCount(
     } else {
       entities.StakersCountToInsert.push(
         new DappAggregatedDaily({
-          id: day.toString(),
+          id: event.id,
+          timestamp: BigInt(day),
           dappAddress: stake.dappAddress,
           stakersCount: dapp.stakersCount,
         })
@@ -113,7 +114,8 @@ export async function handleStakersCount(
     } else {
       entities.StakersCountToInsert.push(
         new DappAggregatedDaily({
-          id: day.toString(),
+          id: event.id,
+          timestamp: BigInt(day),
           dappAddress: stake.dappAddress,
           stakersCount: dapp.stakersCount,
         })

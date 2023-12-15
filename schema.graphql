@@ -46,8 +46,9 @@ type Dapp @entity {
 
 type DappAggregatedDaily @entity {
   id: ID!
-  dappAddress: String!
+  dappAddress: String! @index
   stakersCount: Int!
+  timestamp: BigInt! @index
 }
 
 type TvlAggregatedDaily @entity {
