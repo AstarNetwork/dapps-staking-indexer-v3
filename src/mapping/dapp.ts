@@ -1,7 +1,12 @@
 import { Store } from "@subsquid/typeorm-store";
-import { Dapp, DappState, Stake } from "../model";
+import { Dapp, DappState, DappAggregatedDaily, Stake } from "../model";
 import { Event, ProcessorContext } from "../processor";
-import { getContractAddress, getSs58Address } from "../utils";
+import {
+  Entities,
+  getFirstTimestampOfTheDay,
+  getContractAddress,
+  getSs58Address,
+} from "../utils";
 import { SmartContract } from "../types/v1";
 
 export function registerDapp(event: Event): Dapp {
@@ -65,7 +70,9 @@ export async function updateBeneficiary(
 
 export async function handleStakersCount(
   ctx: ProcessorContext<Store>,
-  stake: Stake
+  stake: Stake,
+  entities: Entities,
+  event: Event
 ): Promise<Dapp | undefined> {
   const dapp = await ctx.store.findOneBy(Dapp, { id: stake.dappAddress });
   const stakes = await ctx.store.findBy(Stake, {
@@ -73,14 +80,45 @@ export async function handleStakersCount(
     stakerAddress: stake.stakerAddress,
   });
   stakes.push(stake); // Current stake is not yet in the db.
+  const day = getFirstTimestampOfTheDay(event.block.timestamp ?? 0);
+  const found = await ctx.store.findOneBy(DappAggregatedDaily, {
+    id: day.toString(),
+  });
 
   const totalStake = stakes.reduce((a, b) => a + b.amount, 0n);
-  if (dapp && (stakes.length === 1 || stakes.length > 1 && totalStake === stake.amount)) {
+  if (
+    dapp &&
+    (stakes.length === 1 || (stakes.length > 1 && totalStake === stake.amount))
+  ) {
     // user stakes the first time or stakes again after un-staking everything before.
     dapp.stakersCount++;
+    if (found) {
+      found.stakersCount = dapp.stakersCount;
+      entities.StakersCountToUpdate.push(found);
+    } else {
+      entities.StakersCountToInsert.push(
+        new DappAggregatedDaily({
+          id: day.toString(),
+          dappAddress: stake.dappAddress,
+          stakersCount: dapp.stakersCount,
+        })
+      );
+    }
     return dapp;
   } else if (dapp && totalStake === 0n) {
     dapp.stakersCount--;
+    if (found) {
+      found.stakersCount = dapp.stakersCount;
+      entities.StakersCountToUpdate.push(found);
+    } else {
+      entities.StakersCountToInsert.push(
+        new DappAggregatedDaily({
+          id: day.toString(),
+          dappAddress: stake.dappAddress,
+          stakersCount: dapp.stakersCount,
+        })
+      );
+    }
     return dapp;
   }
 

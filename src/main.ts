@@ -68,6 +68,8 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
   await ctx.store.upsert(entities.DappsToUpdate);
   await ctx.store.insert(entities.TvlToInsert);
   await ctx.store.upsert(entities.TvlToUpdate);
+  await ctx.store.insert(entities.DappsToInsert);
+  await ctx.store.upsert(entities.DappsToUpdate);
   await ctx.store.insert(entities.StakesToInsert);
 });
 
@@ -79,6 +81,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
     );
     for (let event of block.events) {
       let decoded;
+      ctx.log.info(`Processing event: ${event.name}`);
       switch (event.name) {
         case events.dappsStaking.bondAndStake.name:
           if (events.dappsStaking.bondAndStake.v4.is(event)) {
@@ -258,6 +261,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           break;
         case events.dappStaking.locked.name:
         case events.dappStaking.unlocking.name:
+        // case events.dappStaking.claimedUnlocked.name:
         case events.dappStaking.relock.name:
           await handleTvl(ctx, event, entities);
           break;
@@ -266,7 +270,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
         case events.dappStaking.unstakeFromUnregistered.name:
           const stake = getStake(event);
           entities.StakesToInsert.push(stake);
-          const dapp = await handleStakersCount(ctx, stake);
+          const dapp = await handleStakersCount(ctx, stake, entities, event);
           dapp && entities.DappsToUpdate.push(dapp);
           break;
 

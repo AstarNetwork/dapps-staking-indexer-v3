@@ -14,8 +14,16 @@ export async function handleTvl(
   entities: Entities
 ): Promise<void> {
   const amount = BigInt(event.args.amount);
-  const lockAmount =
-    event.name === events.dappStaking.unlocking.name ? -amount : amount;
+  let lockAmount;
+
+  if (
+    event.name === events.dappStaking.unlocking.name // ||  event.name === events.dappStaking.claimedUnlocked.name
+  ) {
+    lockAmount = -amount;
+  } else {
+    lockAmount = amount;
+  }
+
   const day = getFirstTimestampOfTheDay(event.block.timestamp ?? 0);
   const lock = await ctx.store.findOneBy(TvlAggregatedDaily, {
     id: day.toString(),
