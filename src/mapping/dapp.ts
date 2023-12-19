@@ -108,6 +108,7 @@ export async function handleStakersCount(
     }
     return dapp;
   } else if (dapp && totalStake === 0n) {
+    // user un-stakes everything.
     dapp.stakersCount--;
     if (found) {
       found.stakersCount = dapp.stakersCount;
@@ -124,6 +125,7 @@ export async function handleStakersCount(
     }
     return dapp;
   } else if (dapp) {
+    // user stakes again after un-staking some amount.
     if (found) {
       found.stakersCount = dapp.stakersCount;
       entities.StakersCountToUpdate.push(found);
