@@ -63,6 +63,6 @@ type Stake @entity {
   amount: BigInt!
   timestamp: BigInt!
   blockNumber: Int!
-  expiredAt: BigInt!
-  expiredBlockNumber: Int!
+  expiredAt: BigInt
+  expiredBlockNumber: Int
 }
