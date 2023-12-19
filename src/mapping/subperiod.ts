@@ -2,6 +2,7 @@ import { Store } from "@subsquid/typeorm-store";
 import { Dapp, DappAggregatedDaily, Stake } from "../model";
 import { Event, ProcessorContext } from "../processor";
 import { Entities, getFirstTimestampOfTheDay } from "../utils";
+import { IsNull } from "typeorm";
 
 export async function handleSubperiod(
   ctx: ProcessorContext<Store>,
@@ -36,7 +37,7 @@ export async function handleSubperiod(
         // Stake Store
         let stakes = await ctx.store.findBy(Stake, {
           dappAddress: dapp.id,
-          expiredAt: undefined,
+          expiredAt: IsNull(),
         });
 
         for (const stake of stakes) {
