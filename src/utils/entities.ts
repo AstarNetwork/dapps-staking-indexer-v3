@@ -8,5 +8,6 @@ export class Entities {
   public StakersCountToInsert: DappAggregatedDaily[] = [];
   public StakersCountToUpdate: DappAggregatedDaily[] = [];
   public StakesToInsert: Stake[] = [];
+  public StakesToUpdate: Stake[] = [];
   public stakingEvent: StakingEvent[] = [];
 }

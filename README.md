@@ -39,7 +39,7 @@ On schema changes:
 
 ```bash
 npm generate-metadata # for local node development
-sqd typegen
+sqd typegen # operates on metadata or rpc and modifies types
 sqd codegen
 sqd build # modify your squid to use the new schema until it builds
 sqd down; sqd up

@@ -8,6 +8,7 @@ import {
   getSs58Address,
 } from "../utils";
 import { SmartContract } from "../types/v1";
+import { IsNull } from "typeorm";
 
 export function registerDapp(event: Event): Dapp {
   return new Dapp({
@@ -78,6 +79,7 @@ export async function handleStakersCount(
   const stakes = await ctx.store.findBy(Stake, {
     dappAddress: stake.dappAddress,
     stakerAddress: stake.stakerAddress,
+    expiredAt: IsNull(),
   });
   stakes.push(stake); // Current stake is not yet in the db.
   const day = getFirstTimestampOfTheDay(event.block.timestamp ?? 0);
