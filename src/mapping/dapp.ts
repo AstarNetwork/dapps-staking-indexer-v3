@@ -69,6 +69,29 @@ export async function updateBeneficiary(
   return undefined;
 }
 
+function updateStakersCount(
+  entities: Entities,
+  dapp: Dapp,
+  dappAggregated: DappAggregatedDaily | undefined,
+  event: Event,
+  day: number,
+  stake: Stake
+) {
+  if (dappAggregated) {
+    dappAggregated.stakersCount = dapp.stakersCount;
+    entities.StakersCountToUpdate.push(dappAggregated);
+  } else {
+    entities.StakersCountToInsert.push(
+      new DappAggregatedDaily({
+        id: event.id,
+        timestamp: BigInt(day),
+        dappAddress: stake.dappAddress,
+        stakersCount: dapp.stakersCount,
+      })
+    );
+  }
+}
+
 export async function handleStakersCount(
   ctx: ProcessorContext<Store>,
   stake: Stake,
@@ -83,7 +106,7 @@ export async function handleStakersCount(
   });
   stakes.push(stake); // Current stake is not yet in the db.
   const day = getFirstTimestampOfTheDay(event.block.timestamp ?? 0);
-  const found = await ctx.store.findOneBy(DappAggregatedDaily, {
+  const dappAggregated = await ctx.store.findOneBy(DappAggregatedDaily, {
     timestamp: BigInt(day),
     dappAddress: stake.dappAddress,
   });
@@ -95,52 +118,16 @@ export async function handleStakersCount(
   ) {
     // user stakes the first time or stakes again after un-staking everything before.
     dapp.stakersCount++;
-    if (found) {
-      found.stakersCount = dapp.stakersCount;
-      entities.StakersCountToUpdate.push(found);
-    } else {
-      entities.StakersCountToInsert.push(
-        new DappAggregatedDaily({
-          id: event.id,
-          timestamp: BigInt(day),
-          dappAddress: stake.dappAddress,
-          stakersCount: dapp.stakersCount,
-        })
-      );
-    }
+    updateStakersCount(entities, dapp, dappAggregated, event, day, stake);
     return dapp;
   } else if (dapp && totalStake === 0n) {
     // user un-stakes everything.
     dapp.stakersCount--;
-    if (found) {
-      found.stakersCount = dapp.stakersCount;
-      entities.StakersCountToUpdate.push(found);
-    } else {
-      entities.StakersCountToInsert.push(
-        new DappAggregatedDaily({
-          id: event.id,
-          timestamp: BigInt(day),
-          dappAddress: stake.dappAddress,
-          stakersCount: dapp.stakersCount,
-        })
-      );
-    }
+    updateStakersCount(entities, dapp, dappAggregated, event, day, stake);
     return dapp;
   } else if (dapp) {
     // user stakes again after un-staking some amount.
-    if (found) {
-      found.stakersCount = dapp.stakersCount;
-      entities.StakersCountToUpdate.push(found);
-    } else {
-      entities.StakersCountToInsert.push(
-        new DappAggregatedDaily({
-          id: event.id,
-          timestamp: BigInt(day),
-          dappAddress: stake.dappAddress,
-          stakersCount: dapp.stakersCount,
-        })
-      );
-    }
+    updateStakersCount(entities, dapp, dappAggregated, event, day, stake);
   }
 
   return undefined;
