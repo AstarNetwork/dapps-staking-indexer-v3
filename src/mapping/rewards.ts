@@ -1,12 +1,10 @@
 import { Store } from "@subsquid/typeorm-store";
 import { RewardEvent, RewardEventType } from "../model";
 import { Event, ProcessorContext } from "../processor";
-import { Entities, getFirstTimestampOfTheDay } from "../utils";
+import { Entities, getSs58Address } from "../utils";
 import { events } from "../types";
-import * as ss58 from "@subsquid/ss58";
 
 export async function handleRewards(
-  ctx: ProcessorContext<Store>,
   event: Event,
   entities: Entities
 ): Promise<void> {
@@ -23,13 +21,11 @@ export async function handleRewards(
           transaction: RewardEventType.Reward,
           contractAddress: undefined,
           tierId: undefined,
-          userAddress: ss58.encode({ prefix: 5, bytes: account }),
+          userAddress: getSs58Address(account),
           era: BigInt(era),
           amount,
           period: undefined,
-          timestamp: BigInt(
-            event.block.timestamp !== undefined ? event.block.timestamp : 0
-          ),
+          timestamp: BigInt(event.block.timestamp || 0),
           blockNumber: BigInt(event.block.height),
         };
         entities.RewardsToInsert.push(rewardEvent);

@@ -283,7 +283,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
         case events.dappStaking.reward.name:
         case events.dappStaking.bonusReward.name:
         case events.dappStaking.dAppReward.name:
-          await handleRewards(ctx, event, entities);
+          await handleRewards(event, entities);
           break;
         default:
           ctx.log.warn(`Unhandled event: ${event.name}`);
