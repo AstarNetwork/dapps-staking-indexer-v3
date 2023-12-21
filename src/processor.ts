@@ -50,7 +50,7 @@ export const processor = new SubstrateBatchProcessor()
             timestamp: true
         }
     })
-    .setBlockRange({from: 1}) // .setBlockRange({from: 4_342_300})
+    .setBlockRange({from: 4_342_300})
 
 export type Fields = SubstrateBatchProcessorFields<typeof processor>
 export type Block = BlockHeader<Fields>
