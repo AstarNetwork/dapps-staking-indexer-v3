@@ -11,7 +11,6 @@ export async function handleSubperiod(
 ): Promise<void> {
   const day = getFirstTimestampOfTheDay(event.block.timestamp ?? 0);
   const events = JSON.stringify(event);
-  console.log("events", events);
 
   // Zero out stakers count for all dapps when the subperiod is Voting
   if (event.args.subperiod.__kind === "Voting") {
@@ -19,7 +18,6 @@ export async function handleSubperiod(
       // Dapp Store
       const dapps = await ctx.store.find(Dapp);
       for (const dapp of dapps) {
-        console.log(dapp.id, "now is 0, was:", dapp.stakersCount);
         dapp.stakersCount = 0;
         entities.DappsToUpdate.push(dapp);
 

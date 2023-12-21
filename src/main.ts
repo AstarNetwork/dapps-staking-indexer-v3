@@ -77,10 +77,6 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
 
 async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
   for (let block of ctx.blocks) {
-    assert(
-      block.header.timestamp,
-      `Got an undefined timestamp for block ${block.header.height}`
-    );
     for (let event of block.events) {
       let decoded;
       ctx.log.info(`Processing event: ${event.name}`);
@@ -109,7 +105,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
               transaction: UserTransactionType.BondAndStake,
               contractAddress: decoded.contractAddr,
               amount: decoded.amount,
-              timestamp: BigInt(block.header.timestamp),
+              timestamp: BigInt(block.header.timestamp || 0),
               blockNumber: BigInt(block.header.height),
             })
           );
@@ -146,7 +142,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
               transaction: UserTransactionType.NominationTransfer,
               contractAddress: decoded.targetAddr, // targetAddr as contractAddress?
               amount: decoded.amount,
-              timestamp: BigInt(block.header.timestamp),
+              timestamp: BigInt(block.header.timestamp || 0),
               blockNumber: BigInt(block.header.height),
             })
           );
@@ -172,7 +168,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
               userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
               transaction: UserTransactionType.Withdraw,
               amount: decoded.amount,
-              timestamp: BigInt(block.header.timestamp),
+              timestamp: BigInt(block.header.timestamp || 0),
               blockNumber: BigInt(block.header.height),
             })
           );
@@ -205,7 +201,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
               transaction: UserTransactionType.WithdrawFromUnregistered,
               contractAddress: decoded.contractAddr,
               amount: decoded.amount,
-              timestamp: BigInt(block.header.timestamp),
+              timestamp: BigInt(block.header.timestamp || 0),
               blockNumber: BigInt(block.header.height),
             })
           );
@@ -238,7 +234,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
               transaction: UserTransactionType.UnbondAndUnstake,
               contractAddress: decoded.contractAddr,
               amount: decoded.amount,
-              timestamp: BigInt(block.header.timestamp),
+              timestamp: BigInt(block.header.timestamp || 0),
               blockNumber: BigInt(block.header.height),
             })
           );
