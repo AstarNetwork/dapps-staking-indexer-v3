@@ -16,16 +16,35 @@ type GroupedStakingEvent @entity {
 }
 
 enum UserTransactionType {
-  BondAndStake,
-  UnbondAndUnstake,
-  Withdraw,
-  WithdrawFromUnregistered,
+  BondAndStake
+  UnbondAndUnstake
+  Withdraw
+  WithdrawFromUnregistered
   NominationTransfer
 }
 
+type RewardEvent @entity {
+  id: ID!
+  userAddress: String! @index
+  transaction: RewardEventType!
+  contractAddress: String
+  tierId: Int
+  era: BigInt
+  period: Int
+  amount: BigInt!
+  timestamp: BigInt! @index
+  blockNumber: BigInt!
+}
+
+enum RewardEventType {
+  Reward
+  BonusReward
+  DAppReward
+}
+
 enum DappState {
-  Registered,
-  Unregistered,
+  Registered
+  Unregistered
 }
 
 type Dapp @entity {

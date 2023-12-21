@@ -25,6 +25,7 @@ import {
 } from "./mapping";
 import { getStake } from "./mapping/stake";
 import { handleSubperiod } from "./mapping/subperiod";
+import { handleRewards } from "./mapping/rewards";
 
 // supportHotBlocks: true is actually the default, adding it so that it's obvious how to disable it
 processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
@@ -64,6 +65,7 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
       .concat(wGroupedStakingEvents)
       .concat(wfuGroupedStakingEvents)
   );
+  await ctx.store.insert(entities.RewardsToInsert);
   await ctx.store.insert(entities.stakingEvent);
   await ctx.store.insert(entities.DappsToInsert);
   await ctx.store.upsert(entities.DappsToUpdate);
@@ -277,7 +279,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
         case events.dappStaking.reward.name:
         case events.dappStaking.bonusReward.name:
         case events.dappStaking.dAppReward.name:
-          // await handleRewards(ctx, event, entities);
+          await handleRewards(event, entities);
           break;
         default:
           ctx.log.warn(`Unhandled event: ${event.name}`);
