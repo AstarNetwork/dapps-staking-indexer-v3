@@ -32,6 +32,7 @@ export async function handleTvl(
   if (lock) {
     lock.tvl = lock.tvl + lockAmount;
     entities.TvlToUpdate.push(lock);
+    await ctx.store.upsert(entities.TvlToUpdate);
   } else {
     // New day started. Fetch prev day lock and add to it.
     const prevDay = getFirstTimestampOfThePreviousDay(day);
@@ -44,5 +45,6 @@ export async function handleTvl(
         tvl: lockAmount + (prevDayLock?.tvl ?? 0n),
       })
     );
+    await ctx.store.insert(entities.TvlToInsert);
   }
 }
