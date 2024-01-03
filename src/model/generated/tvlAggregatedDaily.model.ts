@@ -10,6 +10,9 @@ export class TvlAggregatedDaily {
     @PrimaryColumn_()
     id!: string
 
+    @Column_("int4", {nullable: false})
+    blockNumber!: number
+
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     tvl!: bigint
 }

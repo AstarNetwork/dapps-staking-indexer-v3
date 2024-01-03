@@ -78,17 +78,33 @@ function updateStakersCount(
   stake: Stake
 ) {
   if (dappAggregated) {
-    dappAggregated.stakersCount = dapp.stakersCount;
-    entities.StakersCountToUpdate.push(dappAggregated);
-  } else {
-    entities.StakersCountToInsert.push(
-      new DappAggregatedDaily({
-        id: event.id,
-        timestamp: BigInt(day),
-        dappAddress: stake.dappAddress,
-        stakersCount: dapp.stakersCount,
-      })
+    const entity = entities.StakersCountToUpdate.find(
+      (e) => e.timestamp === BigInt(day) && e.dappAddress === stake.dappAddress
     );
+
+    if (entity) {
+      entity.stakersCount = dapp.stakersCount;
+    } else {
+      dappAggregated.stakersCount = dapp.stakersCount;
+      entities.StakersCountToUpdate.push(dappAggregated);
+    }
+  } else {
+    const entity = entities.StakersCountToInsert.find(
+      (e) => e.timestamp === BigInt(day) && e.dappAddress === stake.dappAddress
+    );
+
+    if (entity) {
+      entity.stakersCount = dapp.stakersCount;
+    } else {
+      entities.StakersCountToInsert.push(
+        new DappAggregatedDaily({
+          id: event.id,
+          timestamp: BigInt(day),
+          dappAddress: stake.dappAddress,
+          stakersCount: dapp.stakersCount,
+        })
+      );
+    }
   }
 }
 
