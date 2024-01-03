@@ -72,6 +72,7 @@ type DappAggregatedDaily @entity {
 
 type TvlAggregatedDaily @entity {
   id: ID!
+  blockNumber: Int!
   tvl: BigInt!
 }
 

@@ -11,6 +11,7 @@ import { events } from "./types";
 import { processor, ProcessorContext } from "./processor";
 import {
   Entities,
+  getContractAddress,
   getDayIdentifier,
   getFirstTimestampOfTheNextDay,
   getFirstTimestampOfTheDay,
@@ -69,8 +70,8 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
   await ctx.store.insert(entities.stakingEvent);
   await ctx.store.insert(entities.DappsToInsert);
   await ctx.store.upsert(entities.DappsToUpdate);
-  // await ctx.store.insert(entities.TvlToInsert);
-  // await ctx.store.upsert(entities.TvlToUpdate);
+  await ctx.store.insert(entities.TvlToInsert);
+  await ctx.store.upsert(entities.TvlToUpdate);
   await ctx.store.insert(entities.StakersCountToInsert);
   await ctx.store.upsert(entities.StakersCountToUpdate);
   await ctx.store.insert(entities.StakesToInsert);
@@ -271,6 +272,11 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           const stake = getStake(event);
           entities.StakesToInsert.push(stake);
           const dapp = await handleStakersCount(ctx, stake, entities, event);
+          const index = entities.DappsToUpdate.findIndex(d => d.id === dapp?.id);
+          // If found, remove it from the array
+          if (index !== -1) {
+              entities.DappsToUpdate.splice(index, 1);
+          }
           dapp && entities.DappsToUpdate.push(dapp);
           break;
         case events.dappStaking.newSubperiod.name:
