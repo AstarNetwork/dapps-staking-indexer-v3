@@ -1,4 +1,12 @@
-import { Dapp, DappAggregatedDaily, Stake, StakingEvent, TvlAggregatedDaily, RewardEvent } from "../model";
+import {
+  Dapp,
+  DappAggregatedDaily,
+  Stake,
+  StakingEvent,
+  TvlAggregatedDaily,
+  RewardEvent,
+  Subperiod,
+} from "../model";
 
 export class Entities {
   public DappsToInsert: Dapp[] = [];
@@ -11,4 +19,5 @@ export class Entities {
   public StakesToUpdate: Stake[] = [];
   public stakingEvent: StakingEvent[] = [];
   public RewardsToInsert: RewardEvent[] = [];
+  public SubperiodsToInsert: Subperiod[] = [];
 }

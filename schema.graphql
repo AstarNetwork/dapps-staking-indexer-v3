@@ -86,3 +86,15 @@ type Stake @entity {
   expiredAt: BigInt
   expiredBlockNumber: Int
 }
+
+enum SubperiodType {
+  Voting
+  BuildAndEarn
+}
+
+type Subperiod @entity {
+  id: ID!
+  type: SubperiodType!
+  blockNumber: Int!
+  timestamp: BigInt! @index
+}

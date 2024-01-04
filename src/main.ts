@@ -76,6 +76,7 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
   await ctx.store.upsert(entities.StakersCountToUpdate);
   await ctx.store.insert(entities.StakesToInsert);
   await ctx.store.upsert(entities.StakesToUpdate);
+  await ctx.store.insert(entities.SubperiodsToInsert);
 });
 
 async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {

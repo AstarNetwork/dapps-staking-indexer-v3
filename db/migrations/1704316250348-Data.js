@@ -1,5 +1,5 @@
-module.exports = class Data1704215042295 {
-    name = 'Data1704215042295'
+module.exports = class Data1704316250348 {
+    name = 'Data1704316250348'
 
     async up(db) {
         await db.query(`CREATE TABLE "staking_event" ("id" character varying NOT NULL, "user_address" text NOT NULL, "transaction" character varying(24) NOT NULL, "contract_address" text, "amount" numeric NOT NULL, "timestamp" numeric NOT NULL, "block_number" numeric NOT NULL, CONSTRAINT "PK_c4f2c390140b9ff847dae450025" PRIMARY KEY ("id"))`)
@@ -16,6 +16,8 @@ module.exports = class Data1704215042295 {
         await db.query(`CREATE INDEX "IDX_326c85ce584c6d66d08476a05f" ON "dapp_aggregated_daily" ("timestamp") `)
         await db.query(`CREATE TABLE "tvl_aggregated_daily" ("id" character varying NOT NULL, "block_number" integer NOT NULL, "tvl" numeric NOT NULL, CONSTRAINT "PK_e3005bb3fc1befe9262ed239987" PRIMARY KEY ("id"))`)
         await db.query(`CREATE TABLE "stake" ("id" character varying NOT NULL, "dapp_address" text NOT NULL, "staker_address" text NOT NULL, "amount" numeric NOT NULL, "timestamp" numeric NOT NULL, "block_number" integer NOT NULL, "expired_at" numeric, "expired_block_number" integer, CONSTRAINT "PK_8cfd82a65916af9d517d25a894e" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE TABLE "subperiod" ("id" character varying NOT NULL, "type" character varying(12) NOT NULL, "block_number" integer NOT NULL, "timestamp" numeric NOT NULL, CONSTRAINT "PK_146e2c5964c45574297fd34f99a" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE INDEX "IDX_505d7a5596fd04e6362811a651" ON "subperiod" ("timestamp") `)
     }
 
     async down(db) {
@@ -33,5 +35,7 @@ module.exports = class Data1704215042295 {
         await db.query(`DROP INDEX "public"."IDX_326c85ce584c6d66d08476a05f"`)
         await db.query(`DROP TABLE "tvl_aggregated_daily"`)
         await db.query(`DROP TABLE "stake"`)
+        await db.query(`DROP TABLE "subperiod"`)
+        await db.query(`DROP INDEX "public"."IDX_505d7a5596fd04e6362811a651"`)
     }
 }
