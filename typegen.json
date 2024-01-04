@@ -1,9 +1,35 @@
 {
   "outDir": "src/types",
-  "specVersions": "https://v2.archive.subsquid.io/metadata/astar",
+  "specVersions": "localNode.jsonl",
+  "specVersionsProd": "https://v2.archive.subsquid.io/metadata/astar",
   "pallets": {
     "DappsStaking": {
       "events": ["BondAndStake", "UnbondAndUnstake", "NominationTransfer", "Withdrawn", "WithdrawFromUnregistered"]
+    },
+    "DappStaking": {
+      "events": [
+        "MaintenanceMode",
+        "NewSubperiod",
+        "DAppRegistered",
+        "DAppRewardDestinationUpdated",
+        "DAppOwnerChanged",
+        "DAppUnregistered",
+        "Locked",
+        "Unlocking",
+        "ClaimedUnlocked",
+        "Relock",
+        "Stake",
+        "Unstake",
+        "Reward",
+        "BonusReward",
+        "DAppReward",
+        "UnstakeFromUnregistered",
+        "ExpiredEntriesRemoved",
+        "Force"
+      ],
+      "calls": [],
+      "storage": [],
+      "constants": []
     }
   }
 }
