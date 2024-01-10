@@ -6,6 +6,7 @@ import {
   TvlAggregatedDaily,
   RewardEvent,
   Subperiod,
+  RewardAggregatedDaily,
 } from "../model";
 
 export class Entities {
@@ -19,5 +20,7 @@ export class Entities {
   public StakesToUpdate: Stake[] = [];
   public stakingEvent: StakingEvent[] = [];
   public RewardsToInsert: RewardEvent[] = [];
+  public RewardsAggregatedToInsert: RewardAggregatedDaily[] = [];
+  public RewardsAggregatedToUpdate: RewardAggregatedDaily[] = [];
   public SubperiodsToInsert: Subperiod[] = [];
 }

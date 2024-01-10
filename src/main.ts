@@ -67,6 +67,8 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
       .concat(wfuGroupedStakingEvents)
   );
   await ctx.store.insert(entities.RewardsToInsert);
+  await ctx.store.insert(entities.RewardsAggregatedToInsert);
+  await ctx.store.upsert(entities.RewardsAggregatedToUpdate);
   await ctx.store.insert(entities.stakingEvent);
   await ctx.store.insert(entities.DappsToInsert);
   await ctx.store.upsert(entities.DappsToUpdate);
