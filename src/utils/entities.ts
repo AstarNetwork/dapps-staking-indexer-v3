@@ -16,8 +16,7 @@ export class Entities {
   public TvlToUpdate: TvlAggregatedDaily[] = [];
   public StakersCountToInsert: DappAggregatedDaily[] = [];
   public StakersCountToUpdate: DappAggregatedDaily[] = [];
-  public StakersCountAggregatedDailyToInsert: StakersCountAggregatedDaily[] = [];
-  public StakersCountAggregatedDailyToUpdate: StakersCountAggregatedDaily[] = [];
+  public StakersCountAggregatedDailyToUpsert: StakersCountAggregatedDaily[] = [];
   public StakesToInsert: Stake[] = [];
   public StakesToUpdate: Stake[] = [];
   public stakingEvent: StakingEvent[] = [];

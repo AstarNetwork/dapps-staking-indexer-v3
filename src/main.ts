@@ -27,6 +27,7 @@ import {
 import { getStake } from "./mapping/stake";
 import { handleSubperiod } from "./mapping/subperiod";
 import { handleRewards } from "./mapping/rewards";
+import { handleStakersCountAggregated } from "./mapping/stakersCount";
 
 // supportHotBlocks: true is actually the default, adding it so that it's obvious how to disable it
 processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
@@ -74,8 +75,7 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
   await ctx.store.upsert(entities.TvlToUpdate);
   await ctx.store.insert(entities.StakersCountToInsert);
   await ctx.store.upsert(entities.StakersCountToUpdate);
-  await ctx.store.insert(entities.StakersCountAggregatedDailyToInsert);
-  await ctx.store.upsert(entities.StakersCountAggregatedDailyToUpdate);
+  await ctx.store.upsert(entities.StakersCountAggregatedDailyToUpsert);
   await ctx.store.insert(entities.StakesToInsert);
   await ctx.store.upsert(entities.StakesToUpdate);
   await ctx.store.insert(entities.SubperiodsToInsert);
@@ -297,6 +297,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           continue;
       }
     }
+    await handleStakersCountAggregated(ctx, entities, block.header);
   }
 }
 
