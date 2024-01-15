@@ -74,6 +74,8 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
   await ctx.store.upsert(entities.TvlToUpdate);
   await ctx.store.insert(entities.StakersCountToInsert);
   await ctx.store.upsert(entities.StakersCountToUpdate);
+  await ctx.store.insert(entities.StakersCountAggregatedDailyToInsert);
+  await ctx.store.upsert(entities.StakersCountAggregatedDailyToUpdate);
   await ctx.store.insert(entities.StakesToInsert);
   await ctx.store.upsert(entities.StakesToUpdate);
   await ctx.store.insert(entities.SubperiodsToInsert);
@@ -273,10 +275,12 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           const stake = getStake(event);
           entities.StakesToInsert.push(stake);
           const dapp = await handleStakersCount(ctx, stake, entities, event);
-          const index = entities.DappsToUpdate.findIndex(d => d.id === dapp?.id);
+          const index = entities.DappsToUpdate.findIndex(
+            (d) => d.id === dapp?.id
+          );
           // If found, remove it from the array
           if (index !== -1) {
-              entities.DappsToUpdate.splice(index, 1);
+            entities.DappsToUpdate.splice(index, 1);
           }
           dapp && entities.DappsToUpdate.push(dapp);
           break;

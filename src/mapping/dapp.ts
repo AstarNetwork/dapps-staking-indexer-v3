@@ -3,6 +3,7 @@ import {
   Dapp,
   DappState,
   DappAggregatedDaily,
+  StakersCountAggregatedDaily,
   Stake,
   Subperiod,
 } from "../model";
@@ -79,6 +80,7 @@ async function updateStakersCount(
   entities: Entities,
   dapp: Dapp,
   dappAggregated: DappAggregatedDaily | undefined,
+  stakersCountAggregated: StakersCountAggregatedDaily | undefined,
   event: Event,
   day: number,
   stake: Stake,
@@ -90,6 +92,34 @@ async function updateStakersCount(
 
   if (newSubperiod && newSubperiod.type === "Voting") {
     return;
+  }
+
+  if (stakersCountAggregated) {
+    const entity = entities.StakersCountAggregatedDailyToUpdate.find(
+      (e) => e.id === day.toString()
+    );
+
+    if (entity) {
+      entity.stakersCount = stakersCountAggregated.stakersCount;
+    } else {
+      entities.StakersCountAggregatedDailyToUpdate.push(stakersCountAggregated);
+    }
+  } else {
+    const entity = entities.StakersCountAggregatedDailyToInsert.find(
+      (e) => e.id === day.toString()
+    );
+
+    if (entity) {
+      entity.stakersCount = dapp.stakersCount;
+    } else {
+      entities.StakersCountAggregatedDailyToInsert.push(
+        new StakersCountAggregatedDaily({
+          id: day.toString(),
+          blockNumber: event.block.height,
+          stakersCount: dapp.stakersCount,
+        })
+      );
+    }
   }
 
   if (dappAggregated) {
@@ -141,6 +171,12 @@ export async function handleStakersCount(
     timestamp: BigInt(day),
     dappAddress: stake.dappAddress,
   });
+  const stakersCountAggregated = await ctx.store.findOneBy(
+    StakersCountAggregatedDaily,
+    {
+      id: day.toString(),
+    }
+  );
 
   const totalStake = stakes.reduce((a, b) => a + b.amount, 0n);
   if (
@@ -149,16 +185,45 @@ export async function handleStakersCount(
   ) {
     // user stakes the first time or stakes again after un-staking everything before.
     dapp.stakersCount++;
-    updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
+    stakersCountAggregated && stakersCountAggregated.stakersCount++;
+    updateStakersCount(
+      entities,
+      dapp,
+      dappAggregated,
+      stakersCountAggregated,
+      event,
+      day,
+      stake,
+      ctx
+    );
     return dapp;
   } else if (dapp && totalStake === 0n) {
     // user un-stakes everything.
     dapp.stakersCount--;
-    updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
+    stakersCountAggregated && stakersCountAggregated.stakersCount--;
+    updateStakersCount(
+      entities,
+      dapp,
+      dappAggregated,
+      stakersCountAggregated,
+      event,
+      day,
+      stake,
+      ctx
+    );
     return dapp;
   } else if (dapp) {
     // user stakes again after un-staking some amount.
-    updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
+    updateStakersCount(
+      entities,
+      dapp,
+      dappAggregated,
+      stakersCountAggregated,
+      event,
+      day,
+      stake,
+      ctx
+    );
   }
 
   return undefined;

@@ -70,6 +70,12 @@ type DappAggregatedDaily @entity {
   timestamp: BigInt! @index
 }
 
+type StakersCountAggregatedDaily @entity {
+  id: ID! @index
+  blockNumber: Int!
+  stakersCount: Int!
+}
+
 type TvlAggregatedDaily @entity {
   id: ID!
   blockNumber: Int!
