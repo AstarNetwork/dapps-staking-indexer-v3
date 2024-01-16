@@ -5,6 +5,7 @@ import {
   DappAggregatedDaily,
   Stake,
   Subperiod,
+  SubperiodType,
 } from "../model";
 import { Event, ProcessorContext } from "../processor";
 import {
@@ -88,7 +89,7 @@ async function updateStakersCount(
     timestamp: BigInt(day),
   });
 
-  if (newSubperiod && newSubperiod.type === "Voting") {
+  if (newSubperiod && newSubperiod.type === SubperiodType.Voting) {
     return;
   }
 

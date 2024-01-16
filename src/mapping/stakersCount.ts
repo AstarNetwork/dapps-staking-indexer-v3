@@ -4,6 +4,7 @@ import {
   DappState,
   StakersCountAggregatedDaily,
   Subperiod,
+  SubperiodType,
 } from "../model";
 import { Entities, getFirstTimestampOfTheDay } from "../utils";
 import { ProcessorContext, Block } from "../processor";
@@ -19,7 +20,7 @@ export async function handleStakersCountAggregated(
   const newSubperiod = await ctx.store.findOneBy(Subperiod, {
     timestamp: BigInt(day),
   });
-  if (newSubperiod && newSubperiod.type === "Voting") {
+  if (newSubperiod && newSubperiod.type === SubperiodType.Voting) {
     return;
   }
 
@@ -43,7 +44,9 @@ export async function handleStakersCountAggregated(
     return;
   }
 
-  const entity = entities.StakersCountAggregatedDailyToUpsert.find((e) => e.id === day.toString());
+  const entity = entities.StakersCountAggregatedDailyToUpsert.find(
+    (e) => e.id === day.toString()
+  );
 
   if (entity) {
     entity.stakersCount = totalStakers;
@@ -56,5 +59,4 @@ export async function handleStakersCountAggregated(
       })
     );
   }
-
 }
