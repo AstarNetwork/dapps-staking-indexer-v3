@@ -1,9 +1,8 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} from "typeorm"
-import * as marshal from "./marshal"
 
 @Entity_()
-export class TvlAggregatedDaily {
-    constructor(props?: Partial<TvlAggregatedDaily>) {
+export class StakersCountAggregatedDaily {
+    constructor(props?: Partial<StakersCountAggregatedDaily>) {
         Object.assign(this, props)
     }
 
@@ -13,6 +12,6 @@ export class TvlAggregatedDaily {
     @Column_("int4", {nullable: false})
     blockNumber!: number
 
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-    tvl!: bigint
+    @Column_("int4", {nullable: false})
+    stakersCount!: number
 }

@@ -14,11 +14,11 @@ import {events} from './types'
 
 export const processor = new SubstrateBatchProcessor()
     .setDataSource({
-        chain: {
-            url: assertNotNull(process.env.RPC_ENDPOINT),
-            rateLimit: 10
-        }
-        // chain: 'https://astar.api.onfinality.io/public',
+        // chain: {
+        //     url: assertNotNull(process.env.RPC_ENDPOINT),
+        //     rateLimit: 10
+        // }
+        chain: 'wss://rpc.shibuya.astar.network',
         // archive: lookupArchive('astar', {type: 'Substrate', release: 'ArrowSquid'})
     })
     .addEvent({
@@ -50,7 +50,7 @@ export const processor = new SubstrateBatchProcessor()
             timestamp: true
         }
     })
-    .setBlockRange({from: 4_342_300})
+    .setBlockRange({from: 5_335_615})
 
 export type Fields = SubstrateBatchProcessorFields<typeof processor>
 export type Block = BlockHeader<Fields>

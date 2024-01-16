@@ -1,5 +1,12 @@
 import { Store } from "@subsquid/typeorm-store";
-import { Dapp, DappState, DappAggregatedDaily, Stake } from "../model";
+import {
+  Dapp,
+  DappState,
+  DappAggregatedDaily,
+  Stake,
+  Subperiod,
+  SubperiodType,
+} from "../model";
 import { Event, ProcessorContext } from "../processor";
 import {
   Entities,
@@ -69,26 +76,51 @@ export async function updateBeneficiary(
   return undefined;
 }
 
-function updateStakersCount(
+async function updateStakersCount(
   entities: Entities,
   dapp: Dapp,
   dappAggregated: DappAggregatedDaily | undefined,
   event: Event,
   day: number,
-  stake: Stake
+  stake: Stake,
+  ctx: ProcessorContext<Store>
 ) {
+  const newSubperiod = await ctx.store.findOneBy(Subperiod, {
+    timestamp: BigInt(day),
+  });
+
+  if (newSubperiod && newSubperiod.type === SubperiodType.Voting) {
+    return;
+  }
+
   if (dappAggregated) {
-    dappAggregated.stakersCount = dapp.stakersCount;
-    entities.StakersCountToUpdate.push(dappAggregated);
-  } else {
-    entities.StakersCountToInsert.push(
-      new DappAggregatedDaily({
-        id: event.id,
-        timestamp: BigInt(day),
-        dappAddress: stake.dappAddress,
-        stakersCount: dapp.stakersCount,
-      })
+    const entity = entities.StakersCountToUpdate.find(
+      (e) => e.timestamp === BigInt(day) && e.dappAddress === stake.dappAddress
     );
+
+    if (entity) {
+      entity.stakersCount = dapp.stakersCount;
+    } else {
+      dappAggregated.stakersCount = dapp.stakersCount;
+      entities.StakersCountToUpdate.push(dappAggregated);
+    }
+  } else {
+    const entity = entities.StakersCountToInsert.find(
+      (e) => e.timestamp === BigInt(day) && e.dappAddress === stake.dappAddress
+    );
+
+    if (entity) {
+      entity.stakersCount = dapp.stakersCount;
+    } else {
+      entities.StakersCountToInsert.push(
+        new DappAggregatedDaily({
+          id: event.id,
+          timestamp: BigInt(day),
+          dappAddress: stake.dappAddress,
+          stakersCount: dapp.stakersCount,
+        })
+      );
+    }
   }
 }
 
@@ -118,16 +150,16 @@ export async function handleStakersCount(
   ) {
     // user stakes the first time or stakes again after un-staking everything before.
     dapp.stakersCount++;
-    updateStakersCount(entities, dapp, dappAggregated, event, day, stake);
+    updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
     return dapp;
   } else if (dapp && totalStake === 0n) {
     // user un-stakes everything.
     dapp.stakersCount--;
-    updateStakersCount(entities, dapp, dappAggregated, event, day, stake);
+    updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
     return dapp;
   } else if (dapp) {
     // user stakes again after un-staking some amount.
-    updateStakersCount(entities, dapp, dappAggregated, event, day, stake);
+    updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
   }
 
   return undefined;

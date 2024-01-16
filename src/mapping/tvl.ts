@@ -25,24 +25,58 @@ export async function handleTvl(
   }
 
   const day = getFirstTimestampOfTheDay(event.block.timestamp ?? 0);
-  const lock = await ctx.store.findOneBy(TvlAggregatedDaily, {
-    id: day.toString(),
-  });
 
-  if (lock) {
-    lock.tvl = lock.tvl + lockAmount;
-    entities.TvlToUpdate.push(lock);
+  const entity =
+    entities.TvlToInsert.find((e) => e.id === day.toString()) ||
+    entities.TvlToUpdate.find((e) => e.id === day.toString());
+
+  if (entity) {
+    entity.tvl = entity.tvl + lockAmount;
   } else {
-    // New day started. Fetch prev day lock and add to it.
-    const prevDay = getFirstTimestampOfThePreviousDay(day);
+    const lock = await ctx.store.findOneBy(TvlAggregatedDaily, {
+      id: day.toString(),
+    });
+
+    if (lock) {
+      lock.tvl = lock.tvl + lockAmount;
+      lock.blockNumber = event.block.height;
+      entities.TvlToUpdate.push(lock);
+    } else {
+      // New day started. Fetch prev day lock and add to it.
+      const prevDayLock = await fetchPreviousDayWithTVL(ctx, day, event);
+
+      entities.TvlToInsert.push(
+        new TvlAggregatedDaily({
+          id: day.toString(),
+          blockNumber: event.block.height,
+          tvl: lockAmount + (prevDayLock?.tvl ?? 0n),
+        })
+      );
+    }
+  }
+}
+
+async function fetchPreviousDayWithTVL(
+  ctx: ProcessorContext<Store>,
+  initialDay: number,
+  event: Event
+) {
+  let day = initialDay; // Initialize the day variable with the starting day timestamp
+
+  while (true) {
+    const prevDay = getFirstTimestampOfThePreviousDay(day); // Get the timestamp for the start of the previous day
     const prevDayLock = await ctx.store.findOneBy(TvlAggregatedDaily, {
       id: prevDay.toString(),
-    });
-    entities.TvlToInsert.push(
-      new TvlAggregatedDaily({
-        id: day.toString(),
-        tvl: lockAmount + (prevDayLock?.tvl ?? 0n),
-      })
-    );
+    }); // Fetch the previous day's lock
+
+    if (prevDayLock && prevDayLock.tvl) {
+      // If prevDayLock has a TVL value, return it
+      return prevDayLock;
+    } else if (event.block.height <= 5335633) {
+      // If the block height is less than or equal to 5335633, return 0
+      return undefined;
+    }
+
+    day = prevDay; // Update the day to the previous day for the next iteration
   }
 }
