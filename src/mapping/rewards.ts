@@ -49,14 +49,14 @@ async function createAndAddRewardsAggregated(
       ? getContractAddress(decodedData.smartContract)
       : getSs58Address(decodedData.account || decodedData.beneficiary);
   const RewardAggregated = await ctx.store.findOneBy(RewardAggregatedDaily, {
-    id: day.toString(),
+    timestamp: BigInt(day),
     beneficiary,
   });
 
   if (RewardAggregated) {
     RewardAggregated.amount += decodedData.amount;
     const entity = entities.RewardsAggregatedToUpsert.find(
-      (e) => e.id === day.toString() && e.beneficiary === beneficiary
+      (e) => e.timestamp === BigInt(day) && e.beneficiary === beneficiary
     );
 
     if (entity) {
@@ -66,7 +66,7 @@ async function createAndAddRewardsAggregated(
     }
   } else {
     const entity = entities.RewardsAggregatedToUpsert.find(
-      (e) => e.id === day.toString() && e.beneficiary === beneficiary
+      (e) => e.timestamp === BigInt(day) && e.beneficiary === beneficiary
     );
 
     if (entity) {
@@ -74,7 +74,8 @@ async function createAndAddRewardsAggregated(
     } else {
       entities.RewardsAggregatedToUpsert.push(
         new RewardAggregatedDaily({
-          id: day.toString(),
+          id: event.id,
+          timestamp: BigInt(day),
           beneficiary,
           amount: decodedData.amount,
         })

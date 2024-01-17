@@ -16,4 +16,8 @@ export class RewardAggregatedDaily {
 
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     amount!: bigint
+
+    @Index_()
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    timestamp!: bigint
 }
