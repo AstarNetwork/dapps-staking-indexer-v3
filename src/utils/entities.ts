@@ -22,7 +22,6 @@ export class Entities {
   public StakesToUpdate: Stake[] = [];
   public stakingEvent: StakingEvent[] = [];
   public RewardsToInsert: RewardEvent[] = [];
-  public RewardsAggregatedToInsert: RewardAggregatedDaily[] = [];
-  public RewardsAggregatedToUpdate: RewardAggregatedDaily[] = [];
+  public RewardsAggregatedToUpsert: RewardAggregatedDaily[] = [];
   public SubperiodsToInsert: Subperiod[] = [];
 }
