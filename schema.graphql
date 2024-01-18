@@ -36,6 +36,13 @@ type RewardEvent @entity {
   blockNumber: BigInt!
 }
 
+type RewardAggregatedDaily @entity {
+  id: ID! @index
+  beneficiary: String! @index # userAddress or dapp beneficiary
+  amount: BigInt!
+  timestamp: BigInt! @index
+}
+
 enum RewardEventType {
   Reward
   BonusReward

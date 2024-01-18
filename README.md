@@ -51,5 +51,5 @@ This drops then re-creates the database and regenerates any migrations.
 ## Deploy to the aquarium
 
 ```bash
-deploy -r --org astar-network ./dapps-staking-indexer
+sqd deploy -r --org astar-network ./dapps-staking-indexer
 ```

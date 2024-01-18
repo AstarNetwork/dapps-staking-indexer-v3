@@ -68,6 +68,7 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
       .concat(wfuGroupedStakingEvents)
   );
   await ctx.store.insert(entities.RewardsToInsert);
+  await ctx.store.upsert(entities.RewardsAggregatedToUpsert);
   await ctx.store.insert(entities.stakingEvent);
   await ctx.store.insert(entities.DappsToInsert);
   await ctx.store.upsert(entities.DappsToUpdate);
@@ -290,7 +291,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
         case events.dappStaking.reward.name:
         case events.dappStaking.bonusReward.name:
         case events.dappStaking.dAppReward.name:
-          await handleRewards(event, entities);
+          await handleRewards(event, entities, ctx);
           break;
         default:
           ctx.log.warn(`Unhandled event: ${event.name}`);
