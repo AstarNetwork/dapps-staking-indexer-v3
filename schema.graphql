@@ -26,7 +26,7 @@ enum UserTransactionType {
 type RewardEvent @entity {
   id: ID!
   userAddress: String! @index
-  transaction: RewardEventType!
+  transaction: RewardEventType! @index
   contractAddress: String
   tierId: Int
   era: BigInt
@@ -84,19 +84,19 @@ type StakersCountAggregatedDaily @entity {
 }
 
 type TvlAggregatedDaily @entity {
-  id: ID!
+  id: ID! @index
   blockNumber: Int!
   tvl: BigInt!
 }
 
 type Stake @entity {
   id: ID!
-  dappAddress: String!
+  dappAddress: String! @index
   stakerAddress: String!
   amount: BigInt!
   timestamp: BigInt!
   blockNumber: Int!
-  expiredAt: BigInt
+  expiredAt: BigInt @index
   expiredBlockNumber: Int
 }
 
