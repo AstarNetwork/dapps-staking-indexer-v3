@@ -4,6 +4,7 @@ import {
   DappState,
   DappAggregatedDaily,
   Stake,
+  Stakers,
   Subperiod,
   SubperiodType,
 } from "../model";
@@ -150,19 +151,72 @@ export async function handleStakersCount(
   ) {
     // user stakes the first time or stakes again after un-staking everything before.
     dapp.stakersCount++;
+    upsertStakers(entities, stake, ctx);
     updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
     return dapp;
   } else if (dapp && totalStake === 0n) {
     // user un-stakes everything.
     dapp.stakersCount--;
+    deleteStakers(entities, stake, ctx);
     updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
     return dapp;
   } else if (dapp) {
     // user stakes again after un-staking some amount.
+    upsertStakers(entities, stake, ctx);
     updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
   }
 
   return undefined;
+}
+
+export async function deleteStakers(
+  entities: Entities,
+  stake: Stake,
+  ctx: ProcessorContext<Store>
+) {
+  const staker = await ctx.store.findOneBy(Stakers, {
+    dappAddress: stake.dappAddress,
+    stakerAddress: stake.stakerAddress,
+  });
+
+  if (staker) {
+    ctx.store.remove(staker);
+  }
+}
+
+export async function upsertStakers(
+  entities: Entities,
+  stake: Stake,
+  ctx: ProcessorContext<Store>
+) {
+  const staker = await ctx.store.findOneBy(Stakers, {
+    dappAddress: stake.dappAddress,
+    stakerAddress: stake.stakerAddress,
+  });
+
+  const entity = entities.StakersToUpsert.find(
+    (e) =>
+      e.dappAddress === stake.dappAddress &&
+      e.stakerAddress === stake.stakerAddress
+  );
+
+  if (entity) {
+    entity.amount = stake.amount;
+  } else {
+    if (staker) {
+      staker.amount = stake.amount;
+      entities.StakersToUpsert.push(staker);
+    } else {
+      entities.StakersToUpsert.push(
+        new Stakers({
+          id: stake.id,
+          dappAddress: stake.dappAddress,
+          stakerAddress: stake.stakerAddress,
+          amount: stake.amount,
+        })
+      );
+    }
+  }
 }
 
 async function getDapp(

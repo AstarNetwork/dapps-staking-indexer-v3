@@ -3,6 +3,7 @@ import {
   DappAggregatedDaily,
   StakersCountAggregatedDaily,
   Stake,
+  Stakers,
   StakingEvent,
   TvlAggregatedDaily,
   RewardEvent,
@@ -18,6 +19,7 @@ export class Entities {
   public StakersCountToInsert: DappAggregatedDaily[] = [];
   public StakersCountToUpdate: DappAggregatedDaily[] = [];
   public StakersCountAggregatedDailyToUpsert: StakersCountAggregatedDaily[] = [];
+  public StakersToUpsert: Stakers[] = [];
   public StakesToInsert: Stake[] = [];
   public StakesToUpdate: Stake[] = [];
   public stakingEvent: StakingEvent[] = [];

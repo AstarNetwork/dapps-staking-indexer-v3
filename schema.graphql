@@ -77,6 +77,13 @@ type DappAggregatedDaily @entity {
   timestamp: BigInt! @index
 }
 
+type Stakers @entity {
+  id: ID!
+  dappAddress: String! @index
+  stakerAddress: String! @index
+  amount: BigInt!
+}
+
 type StakersCountAggregatedDaily @entity {
   id: ID! @index
   blockNumber: Int!
