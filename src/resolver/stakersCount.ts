@@ -4,11 +4,11 @@ import { Stakers } from "../model";
 
 // Define custom GraphQL ObjectType of the query result
 @ObjectType()
-export class MyQueryResult {
+export class StakersCount {
   @Field(() => Number, { nullable: false })
   total!: number;
 
-  constructor(props: Partial<MyQueryResult>) {
+  constructor(props: Partial<StakersCount>) {
     Object.assign(this, props);
   }
 }
@@ -18,8 +18,8 @@ export class CountResolver {
   // Set by depenency injection
   constructor(private tx: () => Promise<EntityManager>) {}
 
-  @Query(() => [MyQueryResult])
-  async myQuery(): Promise<MyQueryResult[]> {
+  @Query(() => [StakersCount])
+  async myQuery(): Promise<StakersCount[]> {
     const manager = await this.tx();
     // execute custom SQL query
     const result = await manager

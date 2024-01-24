@@ -1,1 +1,1 @@
-export { CountResolver } from "./stakersCount";
+export { CountResolver, StakersCount } from "./stakersCount";
