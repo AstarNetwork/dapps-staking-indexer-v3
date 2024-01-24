@@ -1,0 +1,1 @@
+export { CountResolver } from "./stakersCount";
