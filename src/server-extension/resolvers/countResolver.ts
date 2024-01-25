@@ -1,6 +1,6 @@
 import { Arg, Field, ObjectType, Query, Resolver } from "type-graphql";
 import type { EntityManager } from "typeorm";
-import { Stakers } from "../model";
+import { Stakers } from "../../model";
 
 // Define custom GraphQL ObjectType of the query result
 @ObjectType()
