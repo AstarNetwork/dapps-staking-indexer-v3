@@ -25,7 +25,6 @@ export async function handleStakersCountAggregated(
 
   // get staker's count from UniqueStakerAddress
   const totalStakers: number = await ctx.store.count(UniqueStakerAddress);
-  console.log(`Total stakers: ${totalStakers} and ${header.height}`);
 
   // Check if there is already an entry for this day
   const stakersCountAggregated = await ctx.store.findOneBy(
