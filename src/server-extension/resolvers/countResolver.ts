@@ -19,7 +19,7 @@ export class CountResolver {
   constructor(private tx: () => Promise<EntityManager>) {}
 
   @Query(() => [StakersCount])
-  async myQuery(): Promise<StakersCount[]> {
+  async stakersCount(): Promise<StakersCount[]> {
     const manager = await this.tx();
     // execute custom SQL query
     const result = await manager
