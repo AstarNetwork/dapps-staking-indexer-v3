@@ -5,6 +5,7 @@ import {
   Stake,
   Stakers,
   StakingEvent,
+  UniqueStakerAddress,
   TvlAggregatedDaily,
   RewardEvent,
   Subperiod,
@@ -20,6 +21,7 @@ export class Entities {
   public StakersCountToUpdate: DappAggregatedDaily[] = [];
   public StakersCountAggregatedDailyToUpsert: StakersCountAggregatedDaily[] = [];
   public StakersToUpsert: Stakers[] = [];
+  public UniqueStakerAddressToInsert: UniqueStakerAddress[] = [];
   public StakesToInsert: Stake[] = [];
   public StakesToUpdate: Stake[] = [];
   public stakingEvent: StakingEvent[] = [];

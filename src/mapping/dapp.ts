@@ -7,6 +7,7 @@ import {
   Stakers,
   Subperiod,
   SubperiodType,
+  UniqueStakerAddress,
 } from "../model";
 import { Event, ProcessorContext } from "../processor";
 import {
@@ -152,12 +153,14 @@ export async function handleStakersCount(
     // user stakes the first time or stakes again after un-staking everything before.
     dapp.stakersCount++;
     upsertStakers(entities, stake, ctx);
+    insertUniqueStakerAddress(entities, stake, ctx);
     updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
     return dapp;
   } else if (dapp && totalStake === 0n) {
     // user un-stakes everything.
     dapp.stakersCount--;
-    deleteStakers(entities, stake, ctx);
+    deleteStakers(stake, ctx);
+    deleteUniqueStakerAddress(stake, ctx);
     updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
     return dapp;
   } else if (dapp) {
@@ -169,8 +172,20 @@ export async function handleStakersCount(
   return undefined;
 }
 
+export async function deleteUniqueStakerAddress(
+  stake: Stake,
+  ctx: ProcessorContext<Store>
+) {
+  const uniqueStakerAddress = await ctx.store.findOneBy(UniqueStakerAddress, {
+    id: stake.stakerAddress,
+  });
+
+  if (uniqueStakerAddress) {
+    ctx.store.remove(uniqueStakerAddress);
+  }
+}
+
 export async function deleteStakers(
-  entities: Entities,
   stake: Stake,
   ctx: ProcessorContext<Store>
 ) {
@@ -181,6 +196,34 @@ export async function deleteStakers(
 
   if (staker) {
     ctx.store.remove(staker);
+  }
+}
+
+export async function insertUniqueStakerAddress(
+  entities: Entities,
+  stake: Stake,
+  ctx: ProcessorContext<Store>
+) {
+  const uniqueStakerAddress = await ctx.store.findOneBy(UniqueStakerAddress, {
+    id: stake.stakerAddress,
+  });
+
+  const entity = entities.UniqueStakerAddressToInsert.find(
+    (e) => e.id === stake.stakerAddress
+  );
+
+  if (entity) {
+    return;
+  } else {
+    if (uniqueStakerAddress) {
+      return;
+    } else {
+      entities.UniqueStakerAddressToInsert.push(
+        new UniqueStakerAddress({
+          id: stake.stakerAddress,
+        })
+      );
+    }
   }
 }
 

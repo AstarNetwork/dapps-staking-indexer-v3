@@ -37,7 +37,7 @@ type RewardEvent @entity {
 }
 
 type RewardAggregatedDaily @entity {
-  id: ID! @index
+  id: ID!
   beneficiary: String! @index # userAddress or dapp beneficiary
   amount: BigInt!
   timestamp: BigInt! @index
@@ -84,14 +84,18 @@ type Stakers @entity {
   amount: BigInt!
 }
 
+type UniqueStakerAddress @entity {
+  id: ID!
+}
+
 type StakersCountAggregatedDaily @entity {
-  id: ID! @index
+  id: ID!
   blockNumber: Int!
   stakersCount: Int!
 }
 
 type TvlAggregatedDaily @entity {
-  id: ID! @index
+  id: ID!
   blockNumber: Int!
   tvl: BigInt!
 }

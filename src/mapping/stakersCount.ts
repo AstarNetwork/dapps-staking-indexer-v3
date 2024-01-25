@@ -1,10 +1,9 @@
 import { Store } from "@subsquid/typeorm-store";
 import {
-  Dapp,
-  DappState,
   StakersCountAggregatedDaily,
   Subperiod,
   SubperiodType,
+  UniqueStakerAddress,
 } from "../model";
 import { Entities, getFirstTimestampOfTheDay } from "../utils";
 import { ProcessorContext, Block } from "../processor";
@@ -24,9 +23,9 @@ export async function handleStakersCountAggregated(
     return;
   }
 
-  // get the sum of all stakers count from dapps
-  const dapps = await ctx.store.findBy(Dapp, { state: DappState.Registered });
-  const totalStakers = dapps.reduce((a, b) => a + b.stakersCount, 0);
+  // get staker's count from UniqueStakerAddress
+  const totalStakers: number = await ctx.store.count(UniqueStakerAddress);
+  console.log(`Total stakers: ${totalStakers} and ${header.height}`);
 
   // Check if there is already an entry for this day
   const stakersCountAggregated = await ctx.store.findOneBy(
