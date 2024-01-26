@@ -34,6 +34,8 @@ export async function handleStakersCountAggregated(
     }
   );
 
+  // ctx.log.info(`Stakers count aggregated: ${stakersCountAggregated?.stakersCount} and totalStakers ${totalStakers} for day ${day} `);
+
   // If there is already an entry for this day, and the stakers count is the same, skip
   if (
     stakersCountAggregated &&
@@ -45,6 +47,8 @@ export async function handleStakersCountAggregated(
   const entity = entities.StakersCountAggregatedDailyToUpsert.find(
     (e) => e.id === day.toString()
   );
+
+  // ctx.log.info(`Entity: ${entity?.stakersCount} and totalStakers ${totalStakers} for day ${day} `);
 
   if (entity) {
     entity.stakersCount = totalStakers;
