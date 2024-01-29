@@ -15,6 +15,7 @@ export class RewardEvent {
     @Column_("text", {nullable: false})
     userAddress!: string
 
+    @Index_()
     @Column_("varchar", {length: 11, nullable: false})
     transaction!: RewardEventType
 

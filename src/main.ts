@@ -74,9 +74,11 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
   await ctx.store.upsert(entities.DappsToUpdate);
   await ctx.store.insert(entities.TvlToInsert);
   await ctx.store.upsert(entities.TvlToUpdate);
+  await ctx.store.upsert(entities.StakersToUpsert);
   await ctx.store.insert(entities.StakersCountToInsert);
   await ctx.store.upsert(entities.StakersCountToUpdate);
   await ctx.store.upsert(entities.StakersCountAggregatedDailyToUpsert);
+  await ctx.store.insert(entities.UniqueStakerAddressToInsert);
   await ctx.store.insert(entities.StakesToInsert);
   await ctx.store.upsert(entities.StakesToUpdate);
   await ctx.store.insert(entities.SubperiodsToInsert);
@@ -298,8 +300,8 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           continue;
       }
     }
-    await handleStakersCountAggregated(ctx, entities, block.header);
   }
+  await handleStakersCountAggregated(ctx, entities, ctx.blocks[0].header);
 }
 
 async function getGroupedStakingEvents(

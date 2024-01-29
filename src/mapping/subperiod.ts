@@ -1,5 +1,5 @@
 import { Store } from "@subsquid/typeorm-store";
-import { Dapp, Stake, Subperiod, SubperiodType } from "../model";
+import { Dapp, Stake, Subperiod, SubperiodType, Stakers, UniqueStakerAddress } from "../model";
 import { Event, ProcessorContext } from "../processor";
 import { Entities, getFirstTimestampOfTheDay } from "../utils";
 import { IsNull } from "typeorm";
@@ -41,6 +41,11 @@ export async function handleSubperiod(
           entities.StakesToUpdate.push(stake);
         }
       }
+      // Remove all stakers and unique staker addresses
+      const stakers = await ctx.store.find(Stakers);
+      await ctx.store.remove(stakers);
+      const uniqueStakerAddresses = await ctx.store.find(UniqueStakerAddress);
+      await ctx.store.remove(uniqueStakerAddresses);
     } catch (error) {
       console.error("Error fetching Dapps:", error);
     }

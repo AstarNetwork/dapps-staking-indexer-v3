@@ -18,8 +18,11 @@ export const processor = new SubstrateBatchProcessor()
         //     url: assertNotNull(process.env.RPC_ENDPOINT),
         //     rateLimit: 10
         // }
-        chain: 'wss://rpc.shibuya.astar.network',
-        // archive: lookupArchive('astar', {type: 'Substrate', release: 'ArrowSquid'})
+        // chain: 'wss://rpc.shibuya.astar.network',
+        chain: 'wss://shibuya-rpc.dwellir.com',
+        // chain: 'wss://shibuya.api.onfinality.io/public-ws',
+        // chain: 'wss://shibuya.public.blastapi.io/',
+        // archive: lookupArchive('shibuya', {type: 'Substrate', release: 'ArrowSquid'})
     })
     .addEvent({
         name: [

@@ -4,8 +4,10 @@ import {
   DappState,
   DappAggregatedDaily,
   Stake,
+  Stakers,
   Subperiod,
   SubperiodType,
+  UniqueStakerAddress,
 } from "../model";
 import { Event, ProcessorContext } from "../processor";
 import {
@@ -150,19 +152,114 @@ export async function handleStakersCount(
   ) {
     // user stakes the first time or stakes again after un-staking everything before.
     dapp.stakersCount++;
+    upsertStakers(entities, stake, ctx);
+    insertUniqueStakerAddress(entities, stake, ctx);
     updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
     return dapp;
   } else if (dapp && totalStake === 0n) {
     // user un-stakes everything.
     dapp.stakersCount--;
+    deleteStakers(stake, ctx);
+    deleteUniqueStakerAddress(stake, ctx);
     updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
     return dapp;
   } else if (dapp) {
     // user stakes again after un-staking some amount.
+    upsertStakers(entities, stake, ctx);
     updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
   }
 
   return undefined;
+}
+
+export async function deleteUniqueStakerAddress(
+  stake: Stake,
+  ctx: ProcessorContext<Store>
+) {
+  const uniqueStakerAddress = await ctx.store.findOneBy(UniqueStakerAddress, {
+    id: stake.stakerAddress,
+  });
+
+  if (uniqueStakerAddress) {
+    ctx.store.remove(uniqueStakerAddress);
+  }
+}
+
+export async function deleteStakers(
+  stake: Stake,
+  ctx: ProcessorContext<Store>
+) {
+  const staker = await ctx.store.findOneBy(Stakers, {
+    dappAddress: stake.dappAddress,
+    stakerAddress: stake.stakerAddress,
+  });
+
+  if (staker) {
+    ctx.store.remove(staker);
+  }
+}
+
+export async function insertUniqueStakerAddress(
+  entities: Entities,
+  stake: Stake,
+  ctx: ProcessorContext<Store>
+) {
+  const uniqueStakerAddress = await ctx.store.findOneBy(UniqueStakerAddress, {
+    id: stake.stakerAddress,
+  });
+
+  const entity = entities.UniqueStakerAddressToInsert.find(
+    (e) => e.id === stake.stakerAddress
+  );
+
+  if (entity) {
+    return;
+  } else {
+    if (uniqueStakerAddress) {
+      return;
+    } else {
+      entities.UniqueStakerAddressToInsert.push(
+        new UniqueStakerAddress({
+          id: stake.stakerAddress,
+        })
+      );
+    }
+  }
+}
+
+export async function upsertStakers(
+  entities: Entities,
+  stake: Stake,
+  ctx: ProcessorContext<Store>
+) {
+  const staker = await ctx.store.findOneBy(Stakers, {
+    dappAddress: stake.dappAddress,
+    stakerAddress: stake.stakerAddress,
+  });
+
+  const entity = entities.StakersToUpsert.find(
+    (e) =>
+      e.dappAddress === stake.dappAddress &&
+      e.stakerAddress === stake.stakerAddress
+  );
+
+  if (entity) {
+    entity.amount = stake.amount;
+  } else {
+    if (staker) {
+      staker.amount = stake.amount;
+      entities.StakersToUpsert.push(staker);
+    } else {
+      entities.StakersToUpsert.push(
+        new Stakers({
+          id: stake.id,
+          dappAddress: stake.dappAddress,
+          stakerAddress: stake.stakerAddress,
+          amount: stake.amount,
+        })
+      );
+    }
+  }
 }
 
 async function getDapp(

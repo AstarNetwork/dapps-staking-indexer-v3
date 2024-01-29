@@ -1,10 +1,9 @@
 import { Store } from "@subsquid/typeorm-store";
 import {
-  Dapp,
-  DappState,
   StakersCountAggregatedDaily,
   Subperiod,
   SubperiodType,
+  UniqueStakerAddress,
 } from "../model";
 import { Entities, getFirstTimestampOfTheDay } from "../utils";
 import { ProcessorContext, Block } from "../processor";
@@ -16,17 +15,8 @@ export async function handleStakersCountAggregated(
 ) {
   const day = getFirstTimestampOfTheDay(header.timestamp ?? 0);
 
-  // Check if it is a new Voting subperiod day, if so, skip
-  const newSubperiod = await ctx.store.findOneBy(Subperiod, {
-    timestamp: BigInt(day),
-  });
-  if (newSubperiod && newSubperiod.type === SubperiodType.Voting) {
-    return;
-  }
-
-  // get the sum of all stakers count from dapps
-  const dapps = await ctx.store.findBy(Dapp, { state: DappState.Registered });
-  const totalStakers = dapps.reduce((a, b) => a + b.stakersCount, 0);
+  // get staker's count from UniqueStakerAddress
+  const totalStakers: number = await ctx.store.count(UniqueStakerAddress);
 
   // Check if there is already an entry for this day
   const stakersCountAggregated = await ctx.store.findOneBy(
@@ -35,6 +25,8 @@ export async function handleStakersCountAggregated(
       id: day.toString(),
     }
   );
+
+  // ctx.log.info(`Stakers count aggregated: ${stakersCountAggregated?.stakersCount} and totalStakers ${totalStakers} for day ${day} `);
 
   // If there is already an entry for this day, and the stakers count is the same, skip
   if (
@@ -47,6 +39,8 @@ export async function handleStakersCountAggregated(
   const entity = entities.StakersCountAggregatedDailyToUpsert.find(
     (e) => e.id === day.toString()
   );
+
+  // ctx.log.info(`Entity: ${entity?.stakersCount} and totalStakers ${totalStakers} for day ${day} `);
 
   if (entity) {
     entity.stakersCount = totalStakers;
