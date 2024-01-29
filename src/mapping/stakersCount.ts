@@ -15,14 +15,6 @@ export async function handleStakersCountAggregated(
 ) {
   const day = getFirstTimestampOfTheDay(header.timestamp ?? 0);
 
-  // Check if it is a new Voting subperiod day, if so, skip
-  const newSubperiod = await ctx.store.findOneBy(Subperiod, {
-    timestamp: BigInt(day),
-  });
-  if (newSubperiod && newSubperiod.type === SubperiodType.Voting) {
-    return;
-  }
-
   // get staker's count from UniqueStakerAddress
   const totalStakers: number = await ctx.store.count(UniqueStakerAddress);
 
