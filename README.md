@@ -24,7 +24,7 @@ export PATH="${HOME}/global-node-packages/bin:$PATH"
 ```bash
 npm ci
 sqd up
-sqd process -m manifests/shibuya.yaml
+sqd process
 ```
 
 to beging the ingestion, then start the GraphQL server in a separate terminal
@@ -49,6 +49,8 @@ sqd migration:generate # rerun everytime there is a change to the schema
 This drops then re-creates the database and regenerates any migrations.
 
 ## Deploy to the aquarium
+
+There are 3 manifests, one for each network: astar, shiden and shibuya.
 
 ```bash
 sqd deploy . -r --org astar-network -m manifests/astar.yaml
