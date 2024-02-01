@@ -92,6 +92,7 @@ type StakersCountAggregatedDaily @entity {
   id: ID!
   blockNumber: Int!
   stakersCount: Int!
+  stakersAmount: BigInt!
 }
 
 type TvlAggregatedDaily @entity {

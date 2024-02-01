@@ -11,24 +11,42 @@ import { assertNotNull } from "@subsquid/util-internal";
 import { lookupArchive } from "@subsquid/archive-registry";
 import { events } from "./types";
 
-let CHAIN = "shiden";
+// Extract command line arguments excluding the first two elements
+const args = process.argv.slice(2);
 
-let chainURL;
-let blockRange;
-switch (CHAIN) {
-  case "astar":
-    blockRange = { from: 4_342_300 };
-    chainURL = "wss://astar-rpc.dwellir.com";
-    break;
-  case "shiden":
-    blockRange = { from: 5_820_969 };
-    chainURL = "wss://shiden-rpc.dwellir.com";
-    break;
-  case "shibuya":
-    blockRange = { from: 5_335_615 };
-    chainURL = "wss://shibuya-rpc.dwellir.com";
-    break;
+// Function to determine CHAIN based on command line arguments
+function determineChain(args: string[]) {
+    for (let arg of args) {
+        if (arg.includes('astar')) {
+            return 'astar';
+        } else if (arg.includes('shiden')) {
+            return 'shiden';
+        }
+    }
+    return 'shibuya'; // Default value if no specific chain is found
 }
+
+const network = determineChain(args);
+
+// Object to map CHAIN to its URL and blockRange
+const chainConfig = {
+  astar: {
+    blockRange: { from: 4_342_300 },
+    chainURL: "wss://astar-rpc.dwellir.com",
+  },
+  shiden: {
+    blockRange: { from: 5_820_969 },
+    chainURL: "wss://shiden-rpc.dwellir.com",
+  },
+  shibuya: {
+    blockRange: { from: 5_335_615 },
+    chainURL: "wss://shibuya-rpc.dwellir.com",
+  },
+};
+
+// Setting chainURL and blockRange based on the CHAIN variable
+let { chainURL, blockRange } = chainConfig[network];
+console.log(`Chain URL: ${chainURL}`);
 
 export const processor = new SubstrateBatchProcessor()
   .setDataSource({
