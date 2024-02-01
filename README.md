@@ -24,7 +24,7 @@ export PATH="${HOME}/global-node-packages/bin:$PATH"
 ```bash
 npm ci
 sqd up
-sqd process
+sqd process -m manifests/shibuya.yaml
 ```
 
 to beging the ingestion, then start the GraphQL server in a separate terminal
@@ -51,5 +51,5 @@ This drops then re-creates the database and regenerates any migrations.
 ## Deploy to the aquarium
 
 ```bash
-sqd deploy -r --org astar-network ./dapps-staking-indexer
+sqd deploy . -r --org astar-network -m manifests/astar.yaml
 ```
