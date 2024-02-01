@@ -10,6 +10,9 @@ deploy:
     cmd:
       - node
       - lib/main
+    env:
+      RPC_ENDPOINT: wss://shibuya-rpc.dwellir.com
+      BLOCK_RANGE: 5335615
   api:
     cmd:
       - npx

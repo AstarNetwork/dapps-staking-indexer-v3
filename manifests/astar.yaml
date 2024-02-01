@@ -10,6 +10,9 @@ deploy:
     cmd:
       - node
       - lib/main
+    env:
+      RPC_ENDPOINT: wss://astar-rpc.dwellir.com
+      BLOCK_RANGE: 4342300
   api:
     cmd:
       - npx
