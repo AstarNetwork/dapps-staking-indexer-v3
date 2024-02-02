@@ -13,6 +13,7 @@ deploy:
     env:
       RPC_ENDPOINT: wss://shiden-rpc.dwellir.com
       BLOCK_RANGE: 5820969
+      ARCHIVE: ''
   api:
     cmd:
       - npx

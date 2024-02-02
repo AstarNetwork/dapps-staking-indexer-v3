@@ -11,8 +11,9 @@ deploy:
       - node
       - lib/main
     env:
-      RPC_ENDPOINT: wss://astar-rpc.dwellir.com
+      RPC_ENDPOINT: https://astar.api.onfinality.io/public
       BLOCK_RANGE: 4342300
+      ARCHIVE: astar
   api:
     cmd:
       - npx
