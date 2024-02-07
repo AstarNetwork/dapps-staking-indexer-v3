@@ -62,6 +62,7 @@ async function fetchPreviousDayWithTVL(
   event: Event
 ) {
   let day = initialDay; // Initialize the day variable with the starting day timestamp
+  const initialBlockRange = Number(process.env.BLOCK_RANGE) + 100;
 
   while (true) {
     const prevDay = getFirstTimestampOfThePreviousDay(day); // Get the timestamp for the start of the previous day
@@ -72,7 +73,7 @@ async function fetchPreviousDayWithTVL(
     if (prevDayLock && prevDayLock.tvl) {
       // If prevDayLock has a TVL value, return it
       return prevDayLock;
-    } else if (event.block.height <= 5335633) {
+    } else if (event.block.height <= initialBlockRange) {
       // If the block height is less than or equal to 5335633, return 0
       return undefined;
     }
