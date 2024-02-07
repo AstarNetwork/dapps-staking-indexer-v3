@@ -1,6 +1,6 @@
 {
   "name": "dapps-staking-indexer-v3",
-  "version": "0.0.0",
+  "version": "1.0.2",
   "private": true,
   "engines": {
     "node": ">=16"
