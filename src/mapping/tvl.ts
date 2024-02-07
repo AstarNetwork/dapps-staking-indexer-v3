@@ -6,7 +6,7 @@ import {
   getFirstTimestampOfTheDay,
   getFirstTimestampOfThePreviousDay,
 } from "../utils";
-import { TvlAggregatedDaily } from "../model";
+import { TvlAggregatedDaily, Subperiod } from "../model";
 
 export async function handleTvl(
   ctx: ProcessorContext<Store>,
@@ -43,41 +43,41 @@ export async function handleTvl(
       entities.TvlToUpdate.push(lock);
     } else {
       // New day started. Fetch prev day lock and add to it.
-      const prevDayLock = await fetchPreviousDayWithTVL(ctx, day, event);
+      const prevDayLock = await fetchPreviousDayWithTVL(ctx, day);
 
       entities.TvlToInsert.push(
         new TvlAggregatedDaily({
           id: day.toString(),
           blockNumber: event.block.height,
-          tvl: lockAmount + (prevDayLock?.tvl ?? 0n),
+          tvl: lockAmount + prevDayLock.tvl,
         })
       );
     }
   }
 }
 
+// Fetches the TVL (Total Value Locked) for the first day prior to the initial day with an available TVL.
 async function fetchPreviousDayWithTVL(
   ctx: ProcessorContext<Store>,
-  initialDay: number,
-  event: Event
-) {
-  let day = initialDay; // Initialize the day variable with the starting day timestamp
-  const initialBlockRange = Number(process.env.BLOCK_RANGE) + 100;
+  initialDay: number
+): Promise<TvlAggregatedDaily> {
+  // Pre-fetch all subperiods to determine if special handling is needed
+  const subperiods = await ctx.store.find(Subperiod);
 
+  let day = initialDay;
   while (true) {
-    const prevDay = getFirstTimestampOfThePreviousDay(day); // Get the timestamp for the start of the previous day
+    const prevDay = getFirstTimestampOfThePreviousDay(day);
     const prevDayLock = await ctx.store.findOneBy(TvlAggregatedDaily, {
       id: prevDay.toString(),
-    }); // Fetch the previous day's lock
+    });
 
-    if (prevDayLock && prevDayLock.tvl) {
-      // If prevDayLock has a TVL value, return it
+    if (prevDayLock?.tvl) {
       return prevDayLock;
-    } else if (event.block.height <= initialBlockRange) {
-      // If the block height is less than or equal to 5335633, return 0
-      return undefined;
+    } else if (subperiods.length === 1) {
+      // If there's only one subperiod, there will not be any previous data, return 0n
+      return new TvlAggregatedDaily({ tvl: 0n });
     }
 
-    day = prevDay; // Update the day to the previous day for the next iteration
+    day = prevDay; // Prepare for the next iteration with the previous day
   }
 }
