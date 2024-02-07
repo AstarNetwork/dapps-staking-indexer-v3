@@ -73,8 +73,8 @@ async function fetchPreviousDayWithTVL(
 
     if (prevDayLock?.tvl) {
       return prevDayLock;
-    } else if (subperiods.length === 1) {
-      // If there's only one subperiod, there will not be any previous data, return 0n
+    } else if (subperiods.length <= 1) {
+      // If there's one or 0 subperiod, there is no need to check the previous day, return 0n
       return new TvlAggregatedDaily({ tvl: 0n });
     }
 
