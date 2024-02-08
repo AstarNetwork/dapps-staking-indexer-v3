@@ -16,9 +16,110 @@ type GroupedStakingEvent @entity {
 }
 
 enum UserTransactionType {
-  BondAndStake,
-  UnbondAndUnstake,
-  Withdraw,
-  WithdrawFromUnregistered,
+  BondAndStake
+  UnbondAndUnstake
+  Withdraw
+  WithdrawFromUnregistered
   NominationTransfer
+}
+
+type RewardEvent @entity {
+  id: ID!
+  userAddress: String! @index
+  transaction: RewardEventType! @index
+  contractAddress: String
+  tierId: Int
+  era: BigInt
+  period: Int
+  amount: BigInt!
+  timestamp: BigInt! @index
+  blockNumber: BigInt!
+}
+
+type RewardAggregatedDaily @entity {
+  id: ID!
+  beneficiary: String! @index # userAddress or dapp beneficiary
+  amount: BigInt!
+  timestamp: BigInt! @index
+}
+
+enum RewardEventType {
+  Reward
+  BonusReward
+  DAppReward
+}
+
+enum DappState {
+  Registered
+  Unregistered
+}
+
+type Dapp @entity {
+  # dApp address
+  id: ID!
+  # dApp id
+  dappId: Int!
+  owner: String!
+  # dApp reward received address
+  beneficiary: String
+  state: DappState!
+  registeredAt: BigInt!
+  registrationBlockNumber: Int!
+  unregisteredAt: BigInt
+  unregistrationBlockNumber: Int
+  stakersCount: Int!
+}
+
+type DappAggregatedDaily @entity {
+  id: ID!
+  dappAddress: String! @index
+  stakersCount: Int!
+  timestamp: BigInt! @index
+}
+
+type Stakers @entity {
+  id: ID!
+  dappAddress: String! @index
+  stakerAddress: String! @index
+  amount: BigInt!
+}
+
+type UniqueStakerAddress @entity {
+  id: ID!
+}
+
+type StakersCountAggregatedDaily @entity {
+  id: ID!
+  blockNumber: Int!
+  stakersCount: Int!
+  stakersAmount: BigInt!
+}
+
+type TvlAggregatedDaily @entity {
+  id: ID!
+  blockNumber: Int!
+  tvl: BigInt!
+}
+
+type Stake @entity {
+  id: ID!
+  dappAddress: String! @index
+  stakerAddress: String!
+  amount: BigInt!
+  timestamp: BigInt!
+  blockNumber: Int!
+  expiredAt: BigInt @index
+  expiredBlockNumber: Int
+}
+
+enum SubperiodType {
+  Voting
+  BuildAndEarn
+}
+
+type Subperiod @entity {
+  id: ID!
+  type: SubperiodType!
+  blockNumber: Int!
+  timestamp: BigInt! @index
 }
