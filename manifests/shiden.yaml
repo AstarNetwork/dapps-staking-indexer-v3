@@ -1,5 +1,5 @@
 manifestVersion: subsquid.io/v0.1
-name: dapps-staking-indexer-shibuya
+name: dapps-staking-indexer-shiden
 version: 1
 description: 'ArrowSquid Indexer for Dapps Staking V3'
 build: 
@@ -10,6 +10,10 @@ deploy:
     cmd:
       - node
       - lib/main
+    env:
+      RPC_ENDPOINT: wss://shiden-rpc.dwellir.com
+      BLOCK_RANGE: 5876078
+      ARCHIVE: shiden
   api:
     cmd:
       - npx

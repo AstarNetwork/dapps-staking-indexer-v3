@@ -1,8 +1,7 @@
 import { Store } from "@subsquid/typeorm-store";
 import {
+  Stakers,
   StakersCountAggregatedDaily,
-  Subperiod,
-  SubperiodType,
   UniqueStakerAddress,
 } from "../model";
 import { Entities, getFirstTimestampOfTheDay } from "../utils";
@@ -17,6 +16,10 @@ export async function handleStakersCountAggregated(
 
   // get staker's count from UniqueStakerAddress
   const totalStakers: number = await ctx.store.count(UniqueStakerAddress);
+  const totalAmount: bigint = (await ctx.store.find(Stakers)).reduce(
+    (a, b) => a + b.amount,
+    0n
+  );
 
   // Check if there is already an entry for this day
   const stakersCountAggregated = await ctx.store.findOneBy(
@@ -44,12 +47,14 @@ export async function handleStakersCountAggregated(
 
   if (entity) {
     entity.stakersCount = totalStakers;
+    entity.stakersAmount = totalAmount;
   } else {
     entities.StakersCountAggregatedDailyToUpsert.push(
       new StakersCountAggregatedDaily({
         id: day.toString(),
         blockNumber: header.height,
         stakersCount: totalStakers,
+        stakersAmount: totalAmount,
       })
     );
   }
