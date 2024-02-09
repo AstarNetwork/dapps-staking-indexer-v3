@@ -1,22 +1,40 @@
 # dApps staking indexer
 
-## `sqd` command installation
+## Prerequisites
+
+- npm, node ≥ v16
+- git
+- docker
+- docker-compose with docker user & group
+
+This is the list of install commands of the prerequisites for Ubuntu 22.04 for the program list above.
 
 ```bash
-npm i -g @subsquid/cli
+# For node and npm
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+NODE_MAJOR=18
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+sudo apt update
+sudo apt install nodejs
+
+# For docker
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose
+sudo gpasswd -a $USER docker
+newgrp docker
 ```
 
-Can't be installed locally: has to be in `PATH`. You can avoid polluting your system by installing to home folder:
+## `sqd` CLI installation
 
 ```bash
-mkdir ~/global-node-packages
-npm config set prefix ~/global-node-packages
-```
-
-then adding this line to `~/.bashrc`:
-
-```bash
-export PATH="${HOME}/global-node-packages/bin:$PATH"
+sudo npm i -g @subsquid/cli
 ```
 
 ## Run
@@ -27,7 +45,9 @@ sqd up
 sqd process
 ```
 
-to beging the ingestion, then start the GraphQL server in a separate terminal
+to beging the ingestion, then start the GraphQL server in a separate terminal.
+
+Also note that the endpoint & block range are stored in the ,env file.
 
 ```bash
 sqd serve
