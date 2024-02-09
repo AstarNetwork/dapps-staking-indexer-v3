@@ -55,11 +55,20 @@ sqd serve
 
 ## Develop
 
-On schema changes:
+### Types
+
+When changes are made to the rpc types, use the following commands:
 
 ```bash
 npm generate-metadata # for local node development
 sqd typegen # operates on metadata or rpc and modifies types
+```
+
+### Schema
+
+When you make changes to the schema, use the following commands:
+
+```bash
 sqd codegen
 sqd build # modify your squid to use the new schema until it builds
 sqd down; sqd up
