@@ -47,7 +47,7 @@ sqd process
 
 to beging the ingestion, then start the GraphQL server in a separate terminal.
 
-Also note that the endpoint & block range are stored in the ,env file.
+Also note that the endpoint & block range are stored in the `.env` file.
 
 ```bash
 sqd serve
