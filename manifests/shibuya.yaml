@@ -1,6 +1,6 @@
 manifestVersion: subsquid.io/v0.1
 name: dapps-staking-indexer-shibuya
-version: 1
+version: 2
 description: 'ArrowSquid Indexer for Dapps Staking V3'
 build: 
 deploy:

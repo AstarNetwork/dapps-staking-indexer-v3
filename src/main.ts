@@ -79,7 +79,7 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
   await ctx.store.upsert(entities.StakersCountToUpdate);
   await ctx.store.upsert(entities.StakersCountAggregatedDailyToUpsert);
   await ctx.store.insert(entities.UniqueStakerAddressToInsert);
-  await ctx.store.insert(entities.UniqueLockerAddressToUpsert);
+  await ctx.store.upsert(entities.UniqueLockerAddressToUpsert);
   await ctx.store.insert(entities.StakesToInsert);
   await ctx.store.upsert(entities.StakesToUpdate);
   await ctx.store.insert(entities.SubperiodsToInsert);
