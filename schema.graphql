@@ -88,6 +88,10 @@ type UniqueStakerAddress @entity {
   id: ID!
 }
 
+type UniqueLockerAddress @entity {
+  id: ID!
+}
+
 type StakersCountAggregatedDaily @entity {
   id: ID!
   blockNumber: Int!
@@ -98,6 +102,7 @@ type StakersCountAggregatedDaily @entity {
 type TvlAggregatedDaily @entity {
   id: ID!
   blockNumber: Int!
+  lockersCount: Int!
   tvl: BigInt!
 }
 
@@ -110,6 +115,20 @@ type Stake @entity {
   blockNumber: Int!
   expiredAt: BigInt @index
   expiredBlockNumber: Int
+}
+
+enum LockType {
+  Locked
+  Unlocking
+  Relock
+}
+
+type Locks @entity {
+  id: ID!
+  lockerAddress: String! @index
+  amount: BigInt!
+  timestamp: BigInt!
+  type: LockType!
 }
 
 enum SubperiodType {

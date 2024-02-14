@@ -6,6 +6,8 @@ import {
   Stakers,
   StakingEvent,
   UniqueStakerAddress,
+  UniqueLockerAddress,
+  Locks,
   TvlAggregatedDaily,
   RewardEvent,
   Subperiod,
@@ -22,6 +24,8 @@ export class Entities {
   public StakersCountAggregatedDailyToUpsert: StakersCountAggregatedDaily[] = [];
   public StakersToUpsert: Stakers[] = [];
   public UniqueStakerAddressToInsert: UniqueStakerAddress[] = [];
+  public UniqueLockerAddressToInsert: UniqueLockerAddress[] = [];
+  public LocksToInsert: Locks[] = [];
   public StakesToInsert: Stake[] = [];
   public StakesToUpdate: Stake[] = [];
   public stakingEvent: StakingEvent[] = [];

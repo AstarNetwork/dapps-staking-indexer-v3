@@ -3,10 +3,17 @@ import { Event, ProcessorContext } from "../processor";
 import { events } from "../types";
 import {
   Entities,
+  getSs58Address,
   getFirstTimestampOfTheDay,
   getFirstTimestampOfThePreviousDay,
 } from "../utils";
-import { TvlAggregatedDaily, Subperiod } from "../model";
+import {
+  TvlAggregatedDaily,
+  Subperiod,
+  UniqueLockerAddress,
+  Locks,
+  LockType,
+} from "../model";
 
 export async function handleTvl(
   ctx: ProcessorContext<Store>,
@@ -14,31 +21,38 @@ export async function handleTvl(
   entities: Entities
 ): Promise<void> {
   const amount = BigInt(event.args.amount);
+  const address = getSs58Address(event.args.account);
   let lockAmount;
 
-  if (
-    event.name === events.dappStaking.unlocking.name // ||  event.name === events.dappStaking.claimedUnlocked.name
-  ) {
+  // ||  event.name === events.dappStaking.claimedUnlocked.name
+  if (event.name === events.dappStaking.unlocking.name) {
     lockAmount = -amount;
+    processLocks(ctx, event, entities, lockAmount, address);
+    deleteUniqueLockerAddress(address, ctx);
   } else {
     lockAmount = amount;
+    processLocks(ctx, event, entities, lockAmount, address);
+    insertUniqueLockerAddress(entities, address, ctx);
   }
 
   const day = getFirstTimestampOfTheDay(event.block.timestamp ?? 0);
+  const totalLockers: number = await ctx.store.count(UniqueLockerAddress);
 
   const entity =
     entities.TvlToInsert.find((e) => e.id === day.toString()) ||
     entities.TvlToUpdate.find((e) => e.id === day.toString());
 
   if (entity) {
-    entity.tvl = entity.tvl + lockAmount;
+    entity.tvl += lockAmount;
+    entity.lockersCount = totalLockers;
   } else {
     const lock = await ctx.store.findOneBy(TvlAggregatedDaily, {
       id: day.toString(),
     });
 
     if (lock) {
-      lock.tvl = lock.tvl + lockAmount;
+      lock.tvl += lockAmount;
+      lock.lockersCount = totalLockers;
       lock.blockNumber = event.block.height;
       entities.TvlToUpdate.push(lock);
     } else {
@@ -49,6 +63,7 @@ export async function handleTvl(
         new TvlAggregatedDaily({
           id: day.toString(),
           blockNumber: event.block.height,
+          lockersCount: totalLockers,
           tvl: lockAmount + prevDayLock.tvl,
         })
       );
@@ -79,5 +94,71 @@ async function fetchPreviousDayWithTVL(
     }
 
     day = prevDay; // Prepare for the next iteration with the previous day
+  }
+}
+
+async function processLocks(
+  ctx: ProcessorContext<Store>,
+  event: Event,
+  entities: Entities,
+  amount: bigint,
+  address: string
+) {
+  const eventNameWithoutPrefix = event.name.replace("DappStaking.", "");
+  const type: LockType = eventNameWithoutPrefix as LockType;
+
+  entities.LocksToInsert.push(
+    new Locks({
+      id: event.id,
+      amount: amount,
+      lockerAddress: address,
+      timestamp: BigInt(event.block.timestamp || 0),
+      type,
+    })
+  );
+}
+
+export async function insertUniqueLockerAddress(
+  entities: Entities,
+  address: string,
+  ctx: ProcessorContext<Store>
+) {
+  const uniqueLockerAddress = await ctx.store.findOneBy(UniqueLockerAddress, {
+    id: address,
+  });
+
+  const entity = entities.UniqueLockerAddressToInsert.find(
+    (e) => e.id === address
+  );
+
+  if (entity) {
+    return;
+  } else {
+    if (uniqueLockerAddress) {
+      return;
+    } else {
+      entities.UniqueLockerAddressToInsert.push(
+        new UniqueLockerAddress({
+          id: address,
+        })
+      );
+    }
+  }
+}
+
+export async function deleteUniqueLockerAddress(
+  address: string,
+  ctx: ProcessorContext<Store>
+) {
+  const locks = await ctx.store.findBy(Locks, {lockerAddress: address});
+  const totalLock = locks.reduce((a, b) => a + b.amount, 0n);
+  console.log("Address, Total lock", address, totalLock);
+
+  const uniqueLockerAddress = await ctx.store.findOneBy(UniqueLockerAddress, {
+    id: address,
+  });
+
+  if (uniqueLockerAddress && totalLock === 0n) {
+    ctx.store.remove(uniqueLockerAddress);
   }
 }

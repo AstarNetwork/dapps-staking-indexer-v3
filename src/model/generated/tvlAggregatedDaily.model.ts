@@ -13,6 +13,9 @@ export class TvlAggregatedDaily {
     @Column_("int4", {nullable: false})
     blockNumber!: number
 
+    @Column_("int4", {nullable: false})
+    lockersCount!: number
+
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     tvl!: bigint
 }
