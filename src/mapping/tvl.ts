@@ -7,13 +7,7 @@ import {
   getFirstTimestampOfTheDay,
   getFirstTimestampOfThePreviousDay,
 } from "../utils";
-import {
-  TvlAggregatedDaily,
-  Subperiod,
-  UniqueLockerAddress,
-  Locks,
-  LockType,
-} from "../model";
+import { TvlAggregatedDaily, Subperiod, UniqueLockerAddress } from "../model";
 
 export async function handleTvl(
   ctx: ProcessorContext<Store>,
@@ -27,12 +21,10 @@ export async function handleTvl(
   // ||  event.name === events.dappStaking.claimedUnlocked.name
   if (event.name === events.dappStaking.unlocking.name) {
     lockAmount = -amount;
-    processLocks(ctx, event, entities, lockAmount, address);
-    deleteUniqueLockerAddress(address, ctx);
+    deleteUniqueLockerAddress(lockAmount, address, ctx);
   } else {
     lockAmount = amount;
-    processLocks(ctx, event, entities, lockAmount, address);
-    insertUniqueLockerAddress(entities, address, ctx);
+    upsertUniqueLockerAddress(lockAmount, address, ctx, entities);
   }
 
   const day = getFirstTimestampOfTheDay(event.block.timestamp ?? 0);
@@ -97,49 +89,33 @@ async function fetchPreviousDayWithTVL(
   }
 }
 
-async function processLocks(
-  ctx: ProcessorContext<Store>,
-  event: Event,
-  entities: Entities,
+export async function upsertUniqueLockerAddress(
   amount: bigint,
-  address: string
-) {
-  const eventNameWithoutPrefix = event.name.replace("DappStaking.", "");
-  const type: LockType = eventNameWithoutPrefix as LockType;
-
-  entities.LocksToInsert.push(
-    new Locks({
-      id: event.id,
-      amount: amount,
-      lockerAddress: address,
-      timestamp: BigInt(event.block.timestamp || 0),
-      type,
-    })
-  );
-}
-
-export async function insertUniqueLockerAddress(
-  entities: Entities,
   address: string,
-  ctx: ProcessorContext<Store>
+  ctx: ProcessorContext<Store>,
+  entities: Entities
 ) {
   const uniqueLockerAddress = await ctx.store.findOneBy(UniqueLockerAddress, {
     id: address,
   });
 
-  const entity = entities.UniqueLockerAddressToInsert.find(
+  const entity = entities.UniqueLockerAddressToUpsert.find(
     (e) => e.id === address
   );
 
   if (entity) {
+    entity.amount += amount;
     return;
   } else {
     if (uniqueLockerAddress) {
+      uniqueLockerAddress.amount += amount;
+      ctx.store.save(uniqueLockerAddress);
       return;
     } else {
-      entities.UniqueLockerAddressToInsert.push(
+      entities.UniqueLockerAddressToUpsert.push(
         new UniqueLockerAddress({
           id: address,
+          amount,
         })
       );
     }
@@ -147,18 +123,21 @@ export async function insertUniqueLockerAddress(
 }
 
 export async function deleteUniqueLockerAddress(
+  amount: bigint,
   address: string,
   ctx: ProcessorContext<Store>
 ) {
-  const locks = await ctx.store.findBy(Locks, {lockerAddress: address});
-  const totalLock = locks.reduce((a, b) => a + b.amount, 0n);
-  console.log("Address, Total lock", address, totalLock);
-
   const uniqueLockerAddress = await ctx.store.findOneBy(UniqueLockerAddress, {
     id: address,
   });
 
-  if (uniqueLockerAddress && totalLock === 0n) {
-    ctx.store.remove(uniqueLockerAddress);
+  if (uniqueLockerAddress) {
+    uniqueLockerAddress.amount += amount;
+
+    if (uniqueLockerAddress.amount === 0n) {
+      ctx.store.remove(uniqueLockerAddress);
+    } else {
+      ctx.store.save(uniqueLockerAddress);
+    }
   }
 }
