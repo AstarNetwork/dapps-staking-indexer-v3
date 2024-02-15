@@ -88,6 +88,11 @@ type UniqueStakerAddress @entity {
   id: ID!
 }
 
+type UniqueLockerAddress @entity {
+  id: ID!
+  amount: BigInt!
+}
+
 type StakersCountAggregatedDaily @entity {
   id: ID!
   blockNumber: Int!
@@ -98,6 +103,7 @@ type StakersCountAggregatedDaily @entity {
 type TvlAggregatedDaily @entity {
   id: ID!
   blockNumber: Int!
+  lockersCount: Int!
   tvl: BigInt!
 }
 

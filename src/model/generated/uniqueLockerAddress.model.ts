@@ -2,20 +2,14 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} f
 import * as marshal from "./marshal"
 
 @Entity_()
-export class TvlAggregatedDaily {
-    constructor(props?: Partial<TvlAggregatedDaily>) {
+export class UniqueLockerAddress {
+    constructor(props?: Partial<UniqueLockerAddress>) {
         Object.assign(this, props)
     }
 
     @PrimaryColumn_()
     id!: string
 
-    @Column_("int4", {nullable: false})
-    blockNumber!: number
-
-    @Column_("int4", {nullable: false})
-    lockersCount!: number
-
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-    tvl!: bigint
+    amount!: bigint
 }
