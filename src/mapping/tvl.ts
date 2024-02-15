@@ -18,7 +18,6 @@ export async function handleTvl(
   const address = getSs58Address(event.args.account);
   let lockAmount;
 
-  // ||  event.name === events.dappStaking.claimedUnlocked.name
   if (event.name === events.dappStaking.unlocking.name) {
     lockAmount = -amount;
     deleteUniqueLockerAddress(lockAmount, address, ctx);
