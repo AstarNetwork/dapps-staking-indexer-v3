@@ -6,7 +6,7 @@ import { getContractAddress, getFirstTimestampOfTheDay, getSs58Address } from ".
 export function getStake(event: Event): Stake {
   const amount = BigInt(event.args.amount);
   const stakeAmount =
-    event.name === events.dappStaking.unstake.name ? -amount : amount;
+    event.name === events.dappStaking.stake.name ? amount : -amount;
 
   return new Stake({
     id: event.id,
