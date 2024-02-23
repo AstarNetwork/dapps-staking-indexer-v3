@@ -21,7 +21,7 @@ console.log(`Block Range: ${blockRange.from}`);
 //       })
 //     : undefined;
 // console.log(`Archive: ${archive}`);
-const chain = process.env.RPC_ASTAR_SUBSTRATE_HTTP || process.env.RPC_ENDPOINT;
+const chain = process.env.RPC_ENDPOINT; // process.env.RPC_ASTAR_SUBSTRATE_HTTP || process.env.RPC_ENDPOINT;
 console.log(`Chain URL: ${chain}`);
 
 export const processor = new SubstrateBatchProcessor()
