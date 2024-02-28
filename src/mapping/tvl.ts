@@ -108,7 +108,7 @@ export async function upsertUniqueLockerAddress(
   } else {
     if (uniqueLockerAddress) {
       uniqueLockerAddress.amount += amount;
-      ctx.store.save(uniqueLockerAddress);
+      await ctx.store.save(uniqueLockerAddress);
       return;
     } else {
       entities.UniqueLockerAddressToUpsert.push(
@@ -134,9 +134,9 @@ export async function deleteUniqueLockerAddress(
     uniqueLockerAddress.amount += amount;
 
     if (uniqueLockerAddress.amount === 0n) {
-      ctx.store.remove(uniqueLockerAddress);
+      await ctx.store.remove(uniqueLockerAddress);
     } else {
-      ctx.store.save(uniqueLockerAddress);
+      await ctx.store.save(uniqueLockerAddress);
     }
   }
 }

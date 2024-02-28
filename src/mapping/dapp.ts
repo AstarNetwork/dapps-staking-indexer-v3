@@ -181,7 +181,7 @@ export async function deleteUniqueStakerAddress(
   });
 
   if (uniqueStakerAddress) {
-    ctx.store.remove(uniqueStakerAddress);
+    await ctx.store.remove(uniqueStakerAddress);
   }
 }
 
@@ -195,7 +195,7 @@ export async function deleteStakers(
   });
 
   if (staker) {
-    ctx.store.remove(staker);
+    await ctx.store.remove(staker);
   }
 }
 
