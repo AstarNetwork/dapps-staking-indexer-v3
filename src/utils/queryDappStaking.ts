@@ -76,7 +76,6 @@ export async function queryDappStakingCurrentEraInfo(param: string) {
     await api.isReady;
     const rawResult = await api.query.dappStaking.currentEraInfo();
     const result: EraInfo = rawResult.toJSON();
-    // console.log("EraInfo", result);
 
     const locked = String2Number(result.totalLocked);
     const staked =
@@ -87,4 +86,46 @@ export async function queryDappStakingCurrentEraInfo(param: string) {
   } catch (error) {
     throw error;
   }
+}
+
+export async function queryDappStakingTierConfig(param: string) {
+  try {
+    const { ApiPromise, WsProvider } = require("@polkadot/api");
+    const api = await ApiPromise.create({
+      provider: new WsProvider(process.env.RPC_ENDPOINT),
+    });
+
+    await api.isReady;
+    const rawResult = await api.query.dappStaking.tierConfig();
+    const result = rawResult.toJSON();
+
+    return result[param];
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function queryDappStakingGetDappTierAssignment(): Promise<Map<number, number>> {
+  const { BN } = require("@polkadot/util");
+  const { ApiPromise, WsProvider } = require("@polkadot/api");
+  const api = await ApiPromise.create({
+    provider: new WsProvider(process.env.RPC_ENDPOINT),
+  });
+
+  await api.isReady;
+  const tierAssignmentsBytes = await api.rpc.state.call(
+    "DappStakingApi_get_dapp_tier_assignment",
+    ""
+  );
+  const tierAssignment = api.createType(
+    "BTreeMap<u16, u8>",
+    tierAssignmentsBytes
+  );
+
+  const result = new Map<number, number>();
+  tierAssignment.forEach((value: typeof BN, key: typeof BN) =>
+    result.set(key.toNumber(), value.toNumber())
+  );
+
+  return result;
 }
