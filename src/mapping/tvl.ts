@@ -20,10 +20,10 @@ export async function handleTvl(
 
   if (event.name === events.dappStaking.unlocking.name) {
     lockAmount = -amount;
-    deleteUniqueLockerAddress(lockAmount, address, ctx);
+    await deleteUniqueLockerAddress(lockAmount, address, ctx);
   } else {
     lockAmount = amount;
-    upsertUniqueLockerAddress(lockAmount, address, ctx, entities);
+    await upsertUniqueLockerAddress(lockAmount, address, ctx, entities);
   }
 
   const day = getFirstTimestampOfTheDay(event.block.timestamp ?? 0);

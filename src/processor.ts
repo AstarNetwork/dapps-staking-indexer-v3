@@ -13,21 +13,21 @@ import { events } from "./types";
 
 const blockRange = { from: parseInt(process.env.BLOCK_RANGE!, 10) };
 console.log(`Block Range: ${blockRange.from}`);
-// const archive =
-//   process.env.ARCHIVE != ""
-//     ? lookupArchive(process.env.ARCHIVE!, {
-//         type: "Substrate",
-//         release: "ArrowSquid",
-//       })
-//     : undefined;
-// console.log(`Archive: ${archive}`);
+const archive =
+  process.env.ARCHIVE != ""
+    ? lookupArchive(process.env.ARCHIVE!, {
+        type: "Substrate",
+        release: "ArrowSquid",
+      })
+    : undefined;
+console.log(`Archive: ${archive}`);
 const chain = process.env.RPC_ENDPOINT; // process.env.RPC_ASTAR_SUBSTRATE_HTTP || process.env.RPC_ENDPOINT;
 console.log(`Chain URL: ${chain}`);
 
 export const processor = new SubstrateBatchProcessor()
   .setDataSource({
     chain: assertNotNull(chain),
-    // archive: archive,
+    archive: archive,
   })
   .addEvent({
     name: [

@@ -152,21 +152,21 @@ export async function handleStakersCount(
   ) {
     // user stakes the first time or stakes again after un-staking everything before.
     dapp.stakersCount++;
-    upsertStakers(entities, stake, ctx, totalStake);
-    insertUniqueStakerAddress(entities, stake, ctx);
-    updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
+    await upsertStakers(entities, stake, ctx, totalStake);
+    await insertUniqueStakerAddress(entities, stake, ctx);
+    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
     return dapp;
   } else if (dapp && totalStake === 0n) {
     // user un-stakes everything.
     dapp.stakersCount--;
-    deleteStakers(stake, ctx);
-    deleteUniqueStakerAddress(stake, ctx);
-    updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
+    await deleteStakers(stake, ctx);
+    await deleteUniqueStakerAddress(stake, ctx);
+    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
     return dapp;
   } else if (dapp) {
     // user stakes again after un-staking some amount.
-    upsertStakers(entities, stake, ctx, totalStake);
-    updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
+    await upsertStakers(entities, stake, ctx, totalStake);
+    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
   }
 
   return undefined;
