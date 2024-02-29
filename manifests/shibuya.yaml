@@ -8,6 +8,8 @@ scale:
 deploy:
   addons:
     postgres:
+    rpc:
+      - shibuya-substrate:http
   processor:
     cmd:
       - node

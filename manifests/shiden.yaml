@@ -8,6 +8,8 @@ scale:
 deploy:
   addons:
     postgres:
+    rpc:
+      - shiden-substrate:http
   processor:
     cmd:
       - node
