@@ -21,14 +21,14 @@ const archive =
       })
     : undefined;
 console.log(`Archive: ${archive}`);
-const rpcSubstrateHttp = `RPC_${archive!.toUpperCase()}_SUBSTRATE_HTTP`;
-const chain = process.env[rpcSubstrateHttp] || process.env.RPC_ENDPOINT;
+// const rpcSubstrateHttp = `RPC_${archive!.toUpperCase()}_SUBSTRATE_HTTP`;
+const chain = process.env.RPC_ENDPOINT; // process.env[rpcSubstrateHttp] || process.env.RPC_ENDPOINT;
 console.log(`Chain URL: ${chain}`);
 
 export const processor = new SubstrateBatchProcessor()
   .setDataSource({
     chain: assertNotNull(chain),
-    archive: archive,
+    // archive: archive,
   })
   .addEvent({
     name: [

@@ -8,6 +8,7 @@ import {
   getFirstTimestampOfThePreviousDay,
 } from "../utils";
 import { TvlAggregatedDaily, Subperiod, UniqueLockerAddress } from "../model";
+import { getUsdPriceWithCache } from "../utils/getUsdPrice";
 
 export async function handleTvl(
   ctx: ProcessorContext<Store>,
@@ -49,6 +50,10 @@ export async function handleTvl(
     } else {
       // New day started. Fetch prev day lock and add to it.
       const prevDayLock = await fetchPreviousDayWithTVL(ctx, day);
+      const usdPrice = await getUsdPriceWithCache(
+        process.env.ARCHIVE!,
+        day.toString()
+      );
 
       entities.TvlToInsert.push(
         new TvlAggregatedDaily({
@@ -56,6 +61,7 @@ export async function handleTvl(
           blockNumber: event.block.height,
           lockersCount: totalLockers,
           tvl: lockAmount + prevDayLock.tvl,
+          usdPrice,
         })
       );
     }
