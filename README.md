@@ -46,12 +46,14 @@ sqd process
 ```
 
 to beging the ingestion, then start the GraphQL server in a separate terminal.
-
 Also note that the endpoint & block range are stored in the `.env` file.
 
 ```bash
 sqd serve
 ```
+
+Serve starts a local API and webserver for you to look at and play with.
+Open your browser here: <http://localhost:4350/graphql>
 
 ## Develop
 

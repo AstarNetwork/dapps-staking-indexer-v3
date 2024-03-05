@@ -12,20 +12,22 @@ import { lookupArchive } from "@subsquid/archive-registry";
 import { events } from "./types";
 
 const blockRange = { from: parseInt(process.env.BLOCK_RANGE!, 10) };
-// const archive =
-//   process.env.ARCHIVE != ""
-//     ? lookupArchive(process.env.ARCHIVE!, {
-//         type: "Substrate",
-//         release: "ArrowSquid",
-//       })
-//     : undefined;
-// console.log(`Archive: ${archive}`);
 console.log(`Block Range: ${blockRange.from}`);
-console.log(`Chain URL: ${process.env.RPC_ENDPOINT}`);
+const archive =
+  process.env.ARCHIVE != ""
+    ? lookupArchive(process.env.ARCHIVE!, {
+        type: "Substrate",
+        release: "ArrowSquid",
+      })
+    : undefined;
+console.log(`Archive: ${archive}`);
+// const rpcSubstrateHttp = `RPC_${archive!.toUpperCase()}_SUBSTRATE_HTTP`;
+const chain = process.env.RPC_ENDPOINT; // process.env[rpcSubstrateHttp] || process.env.RPC_ENDPOINT;
+console.log(`Chain URL: ${chain}`);
 
 export const processor = new SubstrateBatchProcessor()
   .setDataSource({
-    chain: process.env.RPC_ENDPOINT!,
+    chain: assertNotNull(chain),
     // archive: archive,
   })
   .addEvent({

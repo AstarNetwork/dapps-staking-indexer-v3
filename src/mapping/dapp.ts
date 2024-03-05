@@ -152,21 +152,21 @@ export async function handleStakersCount(
   ) {
     // user stakes the first time or stakes again after un-staking everything before.
     dapp.stakersCount++;
-    upsertStakers(entities, stake, ctx);
-    insertUniqueStakerAddress(entities, stake, ctx);
-    updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
+    await upsertStakers(entities, stake, ctx, totalStake);
+    await insertUniqueStakerAddress(entities, stake, ctx);
+    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
     return dapp;
   } else if (dapp && totalStake === 0n) {
     // user un-stakes everything.
     dapp.stakersCount--;
-    deleteStakers(stake, ctx);
-    deleteUniqueStakerAddress(stake, ctx);
-    updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
+    await deleteStakers(stake, ctx);
+    await deleteUniqueStakerAddress(stake, ctx);
+    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
     return dapp;
   } else if (dapp) {
     // user stakes again after un-staking some amount.
-    upsertStakers(entities, stake, ctx);
-    updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
+    await upsertStakers(entities, stake, ctx, totalStake);
+    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
   }
 
   return undefined;
@@ -181,7 +181,7 @@ export async function deleteUniqueStakerAddress(
   });
 
   if (uniqueStakerAddress) {
-    ctx.store.remove(uniqueStakerAddress);
+    await ctx.store.remove(uniqueStakerAddress);
   }
 }
 
@@ -195,7 +195,7 @@ export async function deleteStakers(
   });
 
   if (staker) {
-    ctx.store.remove(staker);
+    await ctx.store.remove(staker);
   }
 }
 
@@ -230,7 +230,8 @@ export async function insertUniqueStakerAddress(
 export async function upsertStakers(
   entities: Entities,
   stake: Stake,
-  ctx: ProcessorContext<Store>
+  ctx: ProcessorContext<Store>,
+  totalStake: bigint
 ) {
   const staker = await ctx.store.findOneBy(Stakers, {
     dappAddress: stake.dappAddress,
@@ -244,10 +245,10 @@ export async function upsertStakers(
   );
 
   if (entity) {
-    entity.amount = stake.amount;
+    entity.amount = totalStake;
   } else {
     if (staker) {
-      staker.amount = stake.amount;
+      staker.amount = totalStake;
       entities.StakersToUpsert.push(staker);
     } else {
       entities.StakersToUpsert.push(
@@ -255,7 +256,7 @@ export async function upsertStakers(
           id: stake.id,
           dappAddress: stake.dappAddress,
           stakerAddress: stake.stakerAddress,
-          amount: stake.amount,
+          amount: totalStake,
         })
       );
     }
