@@ -17,6 +17,7 @@ deploy:
     env:
       RPC_ENDPOINT: wss://shibuya-rpc.dwellir.com
       BLOCK_RANGE: 5335615
+      BLOCK_RANGE_TO: 5335615
       ARCHIVE: "shibuya"
   api:
     cmd:

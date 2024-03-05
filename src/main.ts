@@ -8,7 +8,7 @@ import {
   UserTransactionType,
 } from "./model";
 import { events } from "./types";
-import { processor, ProcessorContext } from "./processor";
+import { processorV2, processorV3, ProcessorContext } from "./processor";
 import {
   Entities,
   getContractAddress,
@@ -30,62 +30,77 @@ import { handleRewards } from "./mapping/rewards";
 import { handleStakersCountAggregated } from "./mapping/stakersCount";
 
 // supportHotBlocks: true is actually the default, adding it so that it's obvious how to disable it
-processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
-  const entities = new Entities();
-  await handleEvents(ctx, entities);
+processorV2.run(
+  new TypeormDatabase({ supportHotBlocks: true, stateSchema: 'processorV2' }),
+  async (ctx) => {
+    const entities = new Entities();
+    await handleEventsV2(ctx, entities);
 
-  const bnsGroupedStakingEvents = await getGroupedStakingEvents(
-    UserTransactionType.BondAndStake,
-    entities.stakingEvent,
-    ctx
-  );
-  const unuGroupedStakingEvents = await getGroupedStakingEvents(
-    UserTransactionType.UnbondAndUnstake,
-    entities.stakingEvent,
-    ctx
-  );
-  const ntGroupedStakingEvents = await getGroupedStakingEvents(
-    UserTransactionType.NominationTransfer,
-    entities.stakingEvent,
-    ctx
-  );
-  const wGroupedStakingEvents = await getGroupedStakingEvents(
-    UserTransactionType.Withdraw,
-    entities.stakingEvent,
-    ctx
-  );
-  const wfuGroupedStakingEvents = await getGroupedStakingEvents(
-    UserTransactionType.WithdrawFromUnregistered,
-    entities.stakingEvent,
-    ctx
-  );
+    const bnsGroupedStakingEvents = await getGroupedStakingEvents(
+      UserTransactionType.BondAndStake,
+      entities.stakingEvent,
+      ctx
+    );
+    const unuGroupedStakingEvents = await getGroupedStakingEvents(
+      UserTransactionType.UnbondAndUnstake,
+      entities.stakingEvent,
+      ctx
+    );
+    const ntGroupedStakingEvents = await getGroupedStakingEvents(
+      UserTransactionType.NominationTransfer,
+      entities.stakingEvent,
+      ctx
+    );
+    const wGroupedStakingEvents = await getGroupedStakingEvents(
+      UserTransactionType.Withdraw,
+      entities.stakingEvent,
+      ctx
+    );
+    const wfuGroupedStakingEvents = await getGroupedStakingEvents(
+      UserTransactionType.WithdrawFromUnregistered,
+      entities.stakingEvent,
+      ctx
+    );
 
-  await ctx.store.insert(
-    bnsGroupedStakingEvents
-      .concat(unuGroupedStakingEvents)
-      .concat(ntGroupedStakingEvents)
-      .concat(wGroupedStakingEvents)
-      .concat(wfuGroupedStakingEvents)
-  );
-  await ctx.store.insert(entities.RewardsToInsert);
-  await ctx.store.upsert(entities.RewardsAggregatedToUpsert);
-  await ctx.store.insert(entities.stakingEvent);
-  await ctx.store.insert(entities.DappsToInsert);
-  await ctx.store.upsert(entities.DappsToUpdate);
-  await ctx.store.insert(entities.TvlToInsert);
-  await ctx.store.upsert(entities.TvlToUpdate);
-  await ctx.store.upsert(entities.StakersToUpsert);
-  await ctx.store.insert(entities.StakersCountToInsert);
-  await ctx.store.upsert(entities.StakersCountToUpdate);
-  await ctx.store.upsert(entities.StakersCountAggregatedDailyToUpsert);
-  await ctx.store.insert(entities.UniqueStakerAddressToInsert);
-  await ctx.store.upsert(entities.UniqueLockerAddressToUpsert);
-  await ctx.store.insert(entities.StakesToInsert);
-  await ctx.store.upsert(entities.StakesToUpdate);
-  await ctx.store.insert(entities.SubperiodsToInsert);
-});
+    await ctx.store.insert(
+      bnsGroupedStakingEvents
+        .concat(unuGroupedStakingEvents)
+        .concat(ntGroupedStakingEvents)
+        .concat(wGroupedStakingEvents)
+        .concat(wfuGroupedStakingEvents)
+    );
+  }
+);
 
-async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
+processorV3.run(
+  new TypeormDatabase({ supportHotBlocks: true, stateSchema: 'processorV3'  }),
+  async (ctx) => {
+    const entities = new Entities();
+    await handleEventsV3(ctx, entities);
+
+    await ctx.store.insert(entities.RewardsToInsert);
+    await ctx.store.upsert(entities.RewardsAggregatedToUpsert);
+    await ctx.store.insert(entities.stakingEvent);
+    await ctx.store.insert(entities.DappsToInsert);
+    await ctx.store.upsert(entities.DappsToUpdate);
+    await ctx.store.insert(entities.TvlToInsert);
+    await ctx.store.upsert(entities.TvlToUpdate);
+    await ctx.store.upsert(entities.StakersToUpsert);
+    await ctx.store.insert(entities.StakersCountToInsert);
+    await ctx.store.upsert(entities.StakersCountToUpdate);
+    await ctx.store.upsert(entities.StakersCountAggregatedDailyToUpsert);
+    await ctx.store.insert(entities.UniqueStakerAddressToInsert);
+    await ctx.store.upsert(entities.UniqueLockerAddressToUpsert);
+    await ctx.store.insert(entities.StakesToInsert);
+    await ctx.store.upsert(entities.StakesToUpdate);
+    await ctx.store.insert(entities.SubperiodsToInsert);
+  }
+);
+
+async function handleEventsV2(
+  ctx: ProcessorContext<Store>,
+  entities: Entities
+) {
   for (let block of ctx.blocks) {
     for (let event of block.events) {
       let decoded;
@@ -251,6 +266,22 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
 
           break;
 
+        default:
+          ctx.log.warn(`Unhandled event: ${event.name}`);
+          continue;
+      }
+    }
+  }
+}
+
+async function handleEventsV3(
+  ctx: ProcessorContext<Store>,
+  entities: Entities
+) {
+  for (let block of ctx.blocks) {
+    for (let event of block.events) {
+      ctx.log.info(`Processing event: ${event.name}`);
+      switch (event.name) {
         case events.dappStaking.dAppRegistered.name:
           entities.DappsToInsert.push(registerDapp(event));
           break;
@@ -269,7 +300,6 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           break;
         case events.dappStaking.locked.name:
         case events.dappStaking.unlocking.name:
-        // case events.dappStaking.claimedUnlocked.name:
         case events.dappStaking.relock.name:
           await handleTvl(ctx, event, entities);
           break;

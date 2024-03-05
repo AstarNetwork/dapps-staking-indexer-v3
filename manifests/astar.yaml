@@ -17,6 +17,7 @@ deploy:
     env:
       RPC_ENDPOINT: https://astar.api.onfinality.io/public
       BLOCK_RANGE: 4342300
+      BLOCK_RANGE_TO: 5437049
       ARCHIVE: astar
   api:
     cmd:
