@@ -15,11 +15,11 @@ const blockRangeV2 = {
   from: parseInt(process.env.BLOCK_RANGE!, 10),
   to: parseInt(process.env.BLOCK_RANGE_TO!, 10),
 };
-const blockRangeV3 = {
+const blockRange = {
   from: parseInt(process.env.BLOCK_RANGE_TO!, 10),
 };
 console.log(`Block Range V2: ${blockRangeV2.from}, ${blockRangeV2.to}`);
-console.log(`Block Range V3: ${blockRangeV3.from}`);
+console.log(`Block Range: ${blockRange.from}`);
 const archive =
   process.env.ARCHIVE != ""
     ? lookupArchive(process.env.ARCHIVE!, {
@@ -54,7 +54,7 @@ export const processorV2 = new SubstrateBatchProcessor()
   .setBlockRange(blockRangeV2)
   .setPrometheusPort("3000");
 
-export const processorV3 = new SubstrateBatchProcessor()
+export const processor = new SubstrateBatchProcessor()
   .setDataSource({
     chain: assertNotNull(chain),
     // archive: archive,
@@ -82,10 +82,10 @@ export const processorV3 = new SubstrateBatchProcessor()
       timestamp: true,
     },
   })
-  .setBlockRange(blockRangeV3)
+  .setBlockRange(blockRange)
   .setPrometheusPort("3001");
 
-export type Fields = SubstrateBatchProcessorFields<typeof processorV2>;
+export type Fields = SubstrateBatchProcessorFields<typeof processor>;
 export type Block = BlockHeader<Fields>;
 export type Event = _Event<Fields>;
 export type Call = _Call<Fields>;
