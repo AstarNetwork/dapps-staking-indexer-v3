@@ -11,7 +11,14 @@ import { assertNotNull } from "@subsquid/util-internal";
 import { lookupArchive } from "@subsquid/archive-registry";
 import { events } from "./types";
 
-const blockRange = { from: parseInt(process.env.BLOCK_RANGE!, 10) };
+const blockRangeV2 = {
+  from: parseInt(process.env.BLOCK_RANGE!, 10),
+  to: parseInt(process.env.BLOCK_RANGE_TO!, 10),
+};
+const blockRange = {
+  from: parseInt(process.env.BLOCK_RANGE_TO!, 10),
+};
+console.log(`Block Range V2: ${blockRangeV2.from}, ${blockRangeV2.to}`);
 console.log(`Block Range: ${blockRange.from}`);
 const archive =
   process.env.ARCHIVE != ""
@@ -25,10 +32,10 @@ console.log(`Archive: ${archive}`);
 const chain = process.env.RPC_ENDPOINT; // process.env[rpcSubstrateHttp] || process.env.RPC_ENDPOINT;
 console.log(`Chain URL: ${chain}`);
 
-export const processor = new SubstrateBatchProcessor()
+export const processorV2 = new SubstrateBatchProcessor()
   .setDataSource({
     chain: assertNotNull(chain),
-    // archive: archive,
+    archive: archive,
   })
   .addEvent({
     name: [
@@ -37,6 +44,23 @@ export const processor = new SubstrateBatchProcessor()
       events.dappsStaking.bondAndStake.name,
       events.dappsStaking.nominationTransfer.name,
       events.dappsStaking.unbondAndUnstake.name,
+    ],
+  })
+  .setFields({
+    block: {
+      timestamp: true,
+    },
+  })
+  .setBlockRange(blockRangeV2)
+  .setPrometheusPort("3000");
+
+export const processor = new SubstrateBatchProcessor()
+  .setDataSource({
+    chain: assertNotNull(chain),
+    // archive: archive,
+  })
+  .addEvent({
+    name: [
       events.dappStaking.dAppRegistered.name,
       events.dappStaking.dAppUnregistered.name,
       events.dappStaking.dAppOwnerChanged.name,
@@ -58,7 +82,8 @@ export const processor = new SubstrateBatchProcessor()
       timestamp: true,
     },
   })
-  .setBlockRange(blockRange);
+  .setBlockRange(blockRange)
+  .setPrometheusPort("3001");
 
 export type Fields = SubstrateBatchProcessorFields<typeof processor>;
 export type Block = BlockHeader<Fields>;
