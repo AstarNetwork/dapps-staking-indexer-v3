@@ -1,6 +1,6 @@
 manifestVersion: subsquid.io/v0.1
 name: dapps-staking-indexer-astar
-version: 4
+version: 5
 description: "ArrowSquid Indexer for Dapps Staking V3"
 build:
 scale:
@@ -11,19 +11,19 @@ deploy:
     rpc:
       - astar-substrate:http
   processor:
-    - name: processorv2
-      cmd: ["sqd", "processv2:prod"]
-      env:
-        RPC_ENDPOINT: https://astar.api.onfinality.io/public
-        BLOCK_RANGE: 4342300
-        BLOCK_RANGE_TO: 5437049
-        ARCHIVE: astar
+    # - name: processorv2
+    #   cmd: ["sqd", "processv2:prod"]
+    #   env:
+    #     RPC_ENDPOINT: https://astar.api.onfinality.io/public
+    #     BLOCK_RANGE: 4342300
+    #     BLOCK_RANGE_TO: 5437049
+    #     ARCHIVE: astar
     - name: processor
       cmd: ["sqd", "process:prod"]
       env:
-        RPC_ENDPOINT: https://astar.api.onfinality.io/public
-        BLOCK_RANGE: 4342300
-        BLOCK_RANGE_TO: 5437049
+        RPC_ENDPOINT: wss://astar-rpc.dwellir.com
+        BLOCK_RANGE: 5437049
+        BLOCK_RANGE_TO: 5594133
         ARCHIVE: astar
   api:
     cmd:
