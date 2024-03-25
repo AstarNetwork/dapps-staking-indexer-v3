@@ -8,7 +8,7 @@ import {
   UserTransactionType,
 } from "./model";
 import { events } from "./types";
-import { processorV2, ProcessorContext } from "./processor";
+import { ProcessorContext } from "./processor";
 import {
   Entities,
   getContractAddress,
@@ -18,224 +18,224 @@ import {
 } from "./utils";
 
 // supportHotBlocks: true is actually the default, adding it so that it's obvious how to disable it
-processorV2.run(
-  new TypeormDatabase({ supportHotBlocks: true, stateSchema: 'processorV2' }),
-  async (ctx) => {
-    const entities = new Entities();
-    await handleEventsV2(ctx, entities);
+// processorV2.run(
+//   new TypeormDatabase({ supportHotBlocks: true, stateSchema: 'processorV2' }),
+//   async (ctx) => {
+//     const entities = new Entities();
+//     await handleEventsV2(ctx, entities);
 
-    const bnsGroupedStakingEvents = await getGroupedStakingEvents(
-      UserTransactionType.BondAndStake,
-      entities.stakingEvent,
-      ctx
-    );
-    const unuGroupedStakingEvents = await getGroupedStakingEvents(
-      UserTransactionType.UnbondAndUnstake,
-      entities.stakingEvent,
-      ctx
-    );
-    const ntGroupedStakingEvents = await getGroupedStakingEvents(
-      UserTransactionType.NominationTransfer,
-      entities.stakingEvent,
-      ctx
-    );
-    const wGroupedStakingEvents = await getGroupedStakingEvents(
-      UserTransactionType.Withdraw,
-      entities.stakingEvent,
-      ctx
-    );
-    const wfuGroupedStakingEvents = await getGroupedStakingEvents(
-      UserTransactionType.WithdrawFromUnregistered,
-      entities.stakingEvent,
-      ctx
-    );
+//     const bnsGroupedStakingEvents = await getGroupedStakingEvents(
+//       UserTransactionType.BondAndStake,
+//       entities.stakingEvent,
+//       ctx
+//     );
+//     const unuGroupedStakingEvents = await getGroupedStakingEvents(
+//       UserTransactionType.UnbondAndUnstake,
+//       entities.stakingEvent,
+//       ctx
+//     );
+//     const ntGroupedStakingEvents = await getGroupedStakingEvents(
+//       UserTransactionType.NominationTransfer,
+//       entities.stakingEvent,
+//       ctx
+//     );
+//     const wGroupedStakingEvents = await getGroupedStakingEvents(
+//       UserTransactionType.Withdraw,
+//       entities.stakingEvent,
+//       ctx
+//     );
+//     const wfuGroupedStakingEvents = await getGroupedStakingEvents(
+//       UserTransactionType.WithdrawFromUnregistered,
+//       entities.stakingEvent,
+//       ctx
+//     );
 
-    await ctx.store.insert(
-      bnsGroupedStakingEvents
-        .concat(unuGroupedStakingEvents)
-        .concat(ntGroupedStakingEvents)
-        .concat(wGroupedStakingEvents)
-        .concat(wfuGroupedStakingEvents)
-    );
-  }
-);
+//     await ctx.store.insert(
+//       bnsGroupedStakingEvents
+//         .concat(unuGroupedStakingEvents)
+//         .concat(ntGroupedStakingEvents)
+//         .concat(wGroupedStakingEvents)
+//         .concat(wfuGroupedStakingEvents)
+//     );
+//   }
+// );
 
-async function handleEventsV2(
-  ctx: ProcessorContext<Store>,
-  entities: Entities
-) {
-  for (let block of ctx.blocks) {
-    for (let event of block.events) {
-      let decoded;
-      ctx.log.info(`Processing event: ${event.name}`);
-      switch (event.name) {
-        case events.dappsStaking.bondAndStake.name:
-          if (events.dappsStaking.bondAndStake.v4.is(event)) {
-            let [account, contract, amount] =
-              events.dappsStaking.bondAndStake.v4.decode(event);
-            decoded = {
-              account,
-              contractAddr:
-                contract.__kind === "Evm"
-                  ? contract.value
-                  : ss58.encode({ prefix: 5, bytes: contract.value }),
-              amount,
-            };
-          } else {
-            ctx.log.error(`Unknown runtime version for a BondAndState event`);
-            continue;
-          }
+// async function handleEventsV2(
+//   ctx: ProcessorContext<Store>,
+//   entities: Entities
+// ) {
+//   for (let block of ctx.blocks) {
+//     for (let event of block.events) {
+//       let decoded;
+//       ctx.log.info(`Processing event: ${event.name}`);
+//       switch (event.name) {
+//         case events.dappsStaking.bondAndStake.name:
+//           if (events.dappsStaking.bondAndStake.v4.is(event)) {
+//             let [account, contract, amount] =
+//               events.dappsStaking.bondAndStake.v4.decode(event);
+//             decoded = {
+//               account,
+//               contractAddr:
+//                 contract.__kind === "Evm"
+//                   ? contract.value
+//                   : ss58.encode({ prefix: 5, bytes: contract.value }),
+//               amount,
+//             };
+//           } else {
+//             ctx.log.error(`Unknown runtime version for a BondAndState event`);
+//             continue;
+//           }
 
-          entities.stakingEvent.push(
-            new StakingEvent({
-              id: event.id,
-              userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
-              transaction: UserTransactionType.BondAndStake,
-              contractAddress: decoded.contractAddr,
-              amount: decoded.amount,
-              timestamp: BigInt(block.header.timestamp || 0),
-              blockNumber: BigInt(block.header.height),
-            })
-          );
+//           entities.stakingEvent.push(
+//             new StakingEvent({
+//               id: event.id,
+//               userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
+//               transaction: UserTransactionType.BondAndStake,
+//               contractAddress: decoded.contractAddr,
+//               amount: decoded.amount,
+//               timestamp: BigInt(block.header.timestamp || 0),
+//               blockNumber: BigInt(block.header.height),
+//             })
+//           );
 
-          break;
+//           break;
 
-        case events.dappsStaking.nominationTransfer.name:
-          if (events.dappsStaking.nominationTransfer.v17.is(event)) {
-            let [account, origin, amount, target] =
-              events.dappsStaking.nominationTransfer.v17.decode(event);
-            decoded = {
-              account,
-              originAddr:
-                origin.__kind === "Evm"
-                  ? origin.value
-                  : ss58.encode({ prefix: 5, bytes: origin.value }),
-              amount,
-              targetAddr:
-                target.__kind === "Evm"
-                  ? target.value
-                  : ss58.encode({ prefix: 5, bytes: target.value }),
-            };
-          } else {
-            ctx.log.error(
-              `Unknown runtime version for a NominationTransfer event`
-            );
-            continue;
-          }
+//         case events.dappsStaking.nominationTransfer.name:
+//           if (events.dappsStaking.nominationTransfer.v17.is(event)) {
+//             let [account, origin, amount, target] =
+//               events.dappsStaking.nominationTransfer.v17.decode(event);
+//             decoded = {
+//               account,
+//               originAddr:
+//                 origin.__kind === "Evm"
+//                   ? origin.value
+//                   : ss58.encode({ prefix: 5, bytes: origin.value }),
+//               amount,
+//               targetAddr:
+//                 target.__kind === "Evm"
+//                   ? target.value
+//                   : ss58.encode({ prefix: 5, bytes: target.value }),
+//             };
+//           } else {
+//             ctx.log.error(
+//               `Unknown runtime version for a NominationTransfer event`
+//             );
+//             continue;
+//           }
 
-          entities.stakingEvent.push(
-            new StakingEvent({
-              id: event.id,
-              userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
-              transaction: UserTransactionType.NominationTransfer,
-              contractAddress: decoded.targetAddr, // targetAddr as contractAddress?
-              amount: decoded.amount,
-              timestamp: BigInt(block.header.timestamp || 0),
-              blockNumber: BigInt(block.header.height),
-            })
-          );
+//           entities.stakingEvent.push(
+//             new StakingEvent({
+//               id: event.id,
+//               userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
+//               transaction: UserTransactionType.NominationTransfer,
+//               contractAddress: decoded.targetAddr, // targetAddr as contractAddress?
+//               amount: decoded.amount,
+//               timestamp: BigInt(block.header.timestamp || 0),
+//               blockNumber: BigInt(block.header.height),
+//             })
+//           );
 
-          break;
+//           break;
 
-        case events.dappsStaking.withdrawn.name:
-          if (events.dappsStaking.withdrawn.v12.is(event)) {
-            let [account, amount] =
-              events.dappsStaking.withdrawn.v12.decode(event);
-            decoded = {
-              account,
-              amount,
-            };
-          } else {
-            ctx.log.error(`Unknown runtime version for a Withdrawn event`);
-            continue;
-          }
+//         case events.dappsStaking.withdrawn.name:
+//           if (events.dappsStaking.withdrawn.v12.is(event)) {
+//             let [account, amount] =
+//               events.dappsStaking.withdrawn.v12.decode(event);
+//             decoded = {
+//               account,
+//               amount,
+//             };
+//           } else {
+//             ctx.log.error(`Unknown runtime version for a Withdrawn event`);
+//             continue;
+//           }
 
-          entities.stakingEvent.push(
-            new StakingEvent({
-              id: event.id,
-              userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
-              transaction: UserTransactionType.Withdraw,
-              amount: decoded.amount,
-              timestamp: BigInt(block.header.timestamp || 0),
-              blockNumber: BigInt(block.header.height),
-            })
-          );
+//           entities.stakingEvent.push(
+//             new StakingEvent({
+//               id: event.id,
+//               userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
+//               transaction: UserTransactionType.Withdraw,
+//               amount: decoded.amount,
+//               timestamp: BigInt(block.header.timestamp || 0),
+//               blockNumber: BigInt(block.header.height),
+//             })
+//           );
 
-          break;
+//           break;
 
-        case events.dappsStaking.withdrawFromUnregistered.name:
-          if (events.dappsStaking.withdrawFromUnregistered.v12.is(event)) {
-            let [account, contract, amount] =
-              events.dappsStaking.withdrawFromUnregistered.v12.decode(event);
-            decoded = {
-              account,
-              contractAddr:
-                contract.__kind === "Evm"
-                  ? contract.value
-                  : ss58.encode({ prefix: 5, bytes: contract.value }),
-              amount,
-            };
-          } else {
-            ctx.log.error(
-              `Unknown runtime version for a WithdrawFromUnregistered event`
-            );
-            continue;
-          }
+//         case events.dappsStaking.withdrawFromUnregistered.name:
+//           if (events.dappsStaking.withdrawFromUnregistered.v12.is(event)) {
+//             let [account, contract, amount] =
+//               events.dappsStaking.withdrawFromUnregistered.v12.decode(event);
+//             decoded = {
+//               account,
+//               contractAddr:
+//                 contract.__kind === "Evm"
+//                   ? contract.value
+//                   : ss58.encode({ prefix: 5, bytes: contract.value }),
+//               amount,
+//             };
+//           } else {
+//             ctx.log.error(
+//               `Unknown runtime version for a WithdrawFromUnregistered event`
+//             );
+//             continue;
+//           }
 
-          entities.stakingEvent.push(
-            new StakingEvent({
-              id: event.id,
-              userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
-              transaction: UserTransactionType.WithdrawFromUnregistered,
-              contractAddress: decoded.contractAddr,
-              amount: decoded.amount,
-              timestamp: BigInt(block.header.timestamp || 0),
-              blockNumber: BigInt(block.header.height),
-            })
-          );
+//           entities.stakingEvent.push(
+//             new StakingEvent({
+//               id: event.id,
+//               userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
+//               transaction: UserTransactionType.WithdrawFromUnregistered,
+//               contractAddress: decoded.contractAddr,
+//               amount: decoded.amount,
+//               timestamp: BigInt(block.header.timestamp || 0),
+//               blockNumber: BigInt(block.header.height),
+//             })
+//           );
 
-          break;
+//           break;
 
-        case events.dappsStaking.unbondAndUnstake.name:
-          if (events.dappsStaking.unbondAndUnstake.v12.is(event)) {
-            let [account, contract, amount] =
-              events.dappsStaking.unbondAndUnstake.v12.decode(event);
-            decoded = {
-              account,
-              contractAddr:
-                contract.__kind === "Evm"
-                  ? contract.value
-                  : ss58.encode({ prefix: 5, bytes: contract.value }),
-              amount,
-            };
-          } else {
-            ctx.log.error(
-              `Unknown runtime version for an UnbondAndUnstake event`
-            );
-            continue;
-          }
+//         case events.dappsStaking.unbondAndUnstake.name:
+//           if (events.dappsStaking.unbondAndUnstake.v12.is(event)) {
+//             let [account, contract, amount] =
+//               events.dappsStaking.unbondAndUnstake.v12.decode(event);
+//             decoded = {
+//               account,
+//               contractAddr:
+//                 contract.__kind === "Evm"
+//                   ? contract.value
+//                   : ss58.encode({ prefix: 5, bytes: contract.value }),
+//               amount,
+//             };
+//           } else {
+//             ctx.log.error(
+//               `Unknown runtime version for an UnbondAndUnstake event`
+//             );
+//             continue;
+//           }
 
-          entities.stakingEvent.push(
-            new StakingEvent({
-              id: event.id,
-              userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
-              transaction: UserTransactionType.UnbondAndUnstake,
-              contractAddress: decoded.contractAddr,
-              amount: decoded.amount,
-              timestamp: BigInt(block.header.timestamp || 0),
-              blockNumber: BigInt(block.header.height),
-            })
-          );
+//           entities.stakingEvent.push(
+//             new StakingEvent({
+//               id: event.id,
+//               userAddress: ss58.encode({ prefix: 5, bytes: decoded.account }),
+//               transaction: UserTransactionType.UnbondAndUnstake,
+//               contractAddress: decoded.contractAddr,
+//               amount: decoded.amount,
+//               timestamp: BigInt(block.header.timestamp || 0),
+//               blockNumber: BigInt(block.header.height),
+//             })
+//           );
 
-          break;
+//           break;
 
-        default:
-          ctx.log.warn(`Unhandled event: ${event.name}`);
-          continue;
-      }
-    }
-  }
-}
+//         default:
+//           ctx.log.warn(`Unhandled event: ${event.name}`);
+//           continue;
+//       }
+//     }
+//   }
+// }
 
 async function getGroupedStakingEvents(
   txType: UserTransactionType,
