@@ -80,11 +80,10 @@ async function writeCsv(fileName: string, records: any[], headerColumns: {id: st
   await csvWriter.writeRecords(records);
 }
 
-// New function to sum and output the total amount
+// Function to sum and output the total amount
 function outputTotalAmount(aggregatedStakersArray: any[]) {
   const totalAmount = aggregatedStakersArray.reduce((sum, staker) => sum + staker.amount, 0);
   console.log(`Total Summed Amount: ${totalAmount}`);
 }
 
-// Execute the function
 fetchData();
