@@ -19,7 +19,9 @@
     "@subsquid/substrate-runtime": "^1.0.0",
     "@subsquid/typeorm-migration": "^1.2.2",
     "@subsquid/typeorm-store": "^1.2.4",
+    "csv-writer": "^1.6.0",
     "dotenv": "^16.3.1",
+    "graphql-request": "^6.1.0",
     "pg": "8.11.3",
     "type-graphql": "^1.2.0-rc.1",
     "typeorm": "^0.3.17"
