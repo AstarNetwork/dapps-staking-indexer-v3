@@ -10,7 +10,7 @@ async function fetchAndLogUsdPrice() {
     console.log(result);
 
     // Fetch price for the second timestamp
-    timestamp = "1707955200000";
+    timestamp = Date.now().toString();
     result = await getUsdPriceWithCache(process.env.ARCHIVE!, timestamp);
     console.log(result);
 

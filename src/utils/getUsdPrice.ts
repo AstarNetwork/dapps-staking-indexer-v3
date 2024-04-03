@@ -21,7 +21,8 @@ export async function getUsdPrice(
   timestamp: string
 ): Promise<number> {
   const url = `https://api.coingecko.com/api/v3/coins/${token}/history?date=${formatDate(
-    timestamp
+    timestamp,
+    "America/Panama"
   )}`;
   console.info(url);
   return new Promise((resolve, reject) => {
@@ -45,7 +46,22 @@ export async function getUsdPrice(
   });
 }
 
-export function formatDate(timestamp: string) {
+function formatDate(timestamp: string, timezone = "UTC") {
   const date = new Date(Number(timestamp));
-  return `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: timezone,
+  });
+
+  // Using the formatter to get the parts of the date
+  const parts = formatter.formatToParts(date);
+  const day = parts.find((part) => part.type === "day")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const year = parts.find((part) => part.type === "year")?.value;
+
+  // Constructing the date in "DD-MM-YYYY" format
+  const dateToLocal = `${day}-${month}-${year}`;
+  return dateToLocal;
 }
