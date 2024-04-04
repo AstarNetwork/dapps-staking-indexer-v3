@@ -84,3 +84,22 @@ There are 3 manifests, one for each network: astar, shiden and shibuya.
 ```bash
 sqd deploy . -r --org astar-network -m manifests/astar.yaml
 ```
+
+The -r is optional if no re-indexing is needed
+
+## Data being indexed
+
+| Table                         | Fields                                                                                                                                |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| dapps                         | beneficiary, dappId, id, owner, registeredAt, registrationBlockNumber, stakersCount, state, unregisteredAt, unregistrationBlockNumber |
+| dappAggregatedDailies         | timestamp, stakersCount, id, dappAddress                                                                                              |
+| rewardEvents                  | amount, blockNumber, contractAddress, era, id, period, tierId, timestamp, transaction, userAddress                                    |
+| rewardAggregatedDailies       | amount, beneficiary, id, timestamp                                                                                                    |
+| stakes                        | amount, dappAddress, stakerAddress, blockNumber, expiredAt, expiredBlockNumber, id, timestamp                                         |
+| stakers                       | amount, dappAddress, stakerAddress, id                                                                                                |
+| stakersCount                  | total                                                                                                                                 |
+| stakersCountAggregatedDailies | blockNumber, id, stakersCount, stakersAmount, usdPrice                                                                                |
+| subperiods                    | id, type, blockNumber, timestamp                                                                                                      |
+| tvlAggregatedDailies          | blockNumber, id, tvl, lockersCount, usdPrice                                                                                          |
+| uniqueStakerAddresses         | id                                                                                                                                    |
+| uniqueLockerAddresses         | id, amount                                                                                                                            |
