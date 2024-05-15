@@ -11,7 +11,6 @@ import { events } from "./types";
 import { processor, ProcessorContext } from "./processor";
 import {
   Entities,
-  getContractAddress,
   getDayIdentifier,
   getFirstTimestampOfTheNextDay,
   getFirstTimestampOfTheDay,
@@ -24,10 +23,11 @@ import {
   handleTvl,
   handleStakersCount,
 } from "./mapping";
-import { getStake } from "./mapping/stake";
+import { aggregateStakesPerDapp, getStake } from "./mapping/stake";
 import { handleSubperiod } from "./mapping/subperiod";
 import { handleRewards } from "./mapping/rewards";
 import { handleStakersCountAggregated } from "./mapping/stakersCount";
+import { getPeriodForBlock, getPeriodForEra } from "./mapping/protocolState";
 
 // supportHotBlocks: true is actually the default, adding it so that it's obvious how to disable it
 processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
@@ -83,6 +83,7 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
   await ctx.store.insert(entities.StakesToInsert);
   await ctx.store.upsert(entities.StakesToUpdate);
   await ctx.store.insert(entities.SubperiodsToInsert);
+  await ctx.store.upsert(entities.StakesPerDapAndPeriodToUpsert);
 });
 
 async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
@@ -90,6 +91,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
     for (let event of block.events) {
       let decoded;
       ctx.log.info(`Processing event: ${event.name}`);
+
       switch (event.name) {
         case events.dappsStaking.bondAndStake.name:
           if (events.dappsStaking.bondAndStake.v4.is(event)) {
@@ -287,6 +289,17 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
             entities.DappsToUpdate.splice(index, 1);
           }
           dapp && entities.DappsToUpdate.push(dapp);
+
+          const period = getPeriodForBlock(block.header.height);
+          await aggregateStakesPerDapp(
+            ctx,
+            entities,
+            stake.dappAddress,
+            stake.amount,
+            BigInt(0),
+            period
+          );
+
           break;
         case events.dappStaking.newSubperiod.name:
           await handleSubperiod(ctx, event, entities);
@@ -295,6 +308,20 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
         case events.dappStaking.bonusReward.name:
         case events.dappStaking.dAppReward.name:
           await handleRewards(event, entities, ctx);
+
+          if (event.name === events.dappStaking.dAppReward.name) {
+            const decodedData = events.dappStaking.dAppReward.v1.decode(event);
+            const period = getPeriodForEra(decodedData.era);
+            await aggregateStakesPerDapp(
+              ctx,
+              entities,
+              decodedData.smartContract.value,
+              BigInt(0),
+              decodedData.amount,
+              period
+            );
+          }
+
           break;
         default:
           ctx.log.warn(`Unhandled event: ${event.name}`);

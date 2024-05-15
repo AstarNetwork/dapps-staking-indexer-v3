@@ -1,11 +1,11 @@
 manifestVersion: subsquid.io/v0.1
 name: dapps-staking-indexer-astar
 version: 2
-description: 'ArrowSquid Indexer for Dapps Staking V3'
-build: 
+description: "ArrowSquid Indexer for Dapps Staking V3"
+build:
 deploy:
   addons:
-    postgres: 
+    postgres:
   processor:
     cmd:
       - node
@@ -14,15 +14,19 @@ deploy:
       RPC_ENDPOINT: wss://rpc.astar.network
       BLOCK_RANGE: 4342300
       ARCHIVE: astar
+      V3_FIRST_BLOCK: 5514934
+      V3_PERIOD_LENGTH: 878400
+      V3_FIRST_ERA: 651
+      V3_ERAS_PER_PERIOD: 112
   api:
     cmd:
       - npx
       - squid-graphql-server
-      - '--dumb-cache'
+      - "--dumb-cache"
       - in-memory
-      - '--dumb-cache-ttl'
-      - '1000'
-      - '--dumb-cache-size'
-      - '100'
-      - '--dumb-cache-max-age'
-      - '1000'
+      - "--dumb-cache-ttl"
+      - "1000"
+      - "--dumb-cache-size"
+      - "100"
+      - "--dumb-cache-max-age"
+      - "1000"

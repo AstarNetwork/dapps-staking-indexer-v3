@@ -129,3 +129,11 @@ type Subperiod @entity {
   blockNumber: Int!
   timestamp: BigInt! @index
 }
+
+type StakesPerDapAndPeriod @entity {
+  id: ID!
+  dappAddress: String! @index
+  period: Int!
+  stakeAmount: BigInt!
+  rewardAmount: BigInt!
+}

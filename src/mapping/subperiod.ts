@@ -1,5 +1,12 @@
 import { Store } from "@subsquid/typeorm-store";
-import { Dapp, Stake, Subperiod, SubperiodType, Stakers, UniqueStakerAddress } from "../model";
+import {
+  Dapp,
+  Stake,
+  Subperiod,
+  SubperiodType,
+  Stakers,
+  UniqueStakerAddress,
+} from "../model";
 import { Event, ProcessorContext } from "../processor";
 import { Entities, getFirstTimestampOfTheDay } from "../utils";
 import { IsNull } from "typeorm";
@@ -25,6 +32,7 @@ export async function handleSubperiod(
     try {
       // Dapp Store
       const dapps = await ctx.store.find(Dapp);
+
       for (const dapp of dapps) {
         dapp.stakersCount = 0;
         entities.DappsToUpdate.push(dapp);

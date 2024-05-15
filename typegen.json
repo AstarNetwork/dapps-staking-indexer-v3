@@ -4,7 +4,13 @@
   "specVersionsProd": "https://v2.archive.subsquid.io/metadata/astar",
   "pallets": {
     "DappsStaking": {
-      "events": ["BondAndStake", "UnbondAndUnstake", "NominationTransfer", "Withdrawn", "WithdrawFromUnregistered"]
+      "events": [
+        "BondAndStake",
+        "UnbondAndUnstake",
+        "NominationTransfer",
+        "Withdrawn",
+        "WithdrawFromUnregistered"
+      ]
     },
     "DappStaking": {
       "events": [

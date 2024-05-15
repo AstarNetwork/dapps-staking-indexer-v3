@@ -1,11 +1,11 @@
 manifestVersion: subsquid.io/v0.1
 name: dapps-staking-indexer-shibuya
 version: 2
-description: 'ArrowSquid Indexer for Dapps Staking V3'
-build: 
+description: "ArrowSquid Indexer for Dapps Staking V3"
+build:
 deploy:
   addons:
-    postgres: 
+    postgres:
   processor:
     cmd:
       - node
@@ -13,16 +13,20 @@ deploy:
     env:
       RPC_ENDPOINT: wss://shibuya-rpc.dwellir.com
       BLOCK_RANGE: 5335615
-      ARCHIVE: 'shibuya'
+      ARCHIVE: "shibuya"
+      V3_FIRST_BLOCK: 5335615
+      V3_PERIOD_LENGTH: 50400
+      V3_FIRST_ERA: 4303
+      V3_ERAS_PER_PERIOD: 21
   api:
     cmd:
       - npx
       - squid-graphql-server
-      - '--dumb-cache'
+      - "--dumb-cache"
       - in-memory
-      - '--dumb-cache-ttl'
-      - '1000'
-      - '--dumb-cache-size'
-      - '100'
-      - '--dumb-cache-max-age'
-      - '1000'
+      - "--dumb-cache-ttl"
+      - "1000"
+      - "--dumb-cache-size"
+      - "100"
+      - "--dumb-cache-max-age"
+      - "1000"

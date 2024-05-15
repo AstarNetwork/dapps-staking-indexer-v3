@@ -11,6 +11,7 @@ import {
   RewardEvent,
   Subperiod,
   RewardAggregatedDaily,
+  StakesPerDapAndPeriod,
 } from "../model";
 
 export class Entities {
@@ -20,7 +21,8 @@ export class Entities {
   public TvlToUpdate: TvlAggregatedDaily[] = [];
   public StakersCountToInsert: DappAggregatedDaily[] = [];
   public StakersCountToUpdate: DappAggregatedDaily[] = [];
-  public StakersCountAggregatedDailyToUpsert: StakersCountAggregatedDaily[] = [];
+  public StakersCountAggregatedDailyToUpsert: StakersCountAggregatedDaily[] =
+    [];
   public StakersToUpsert: Stakers[] = [];
   public UniqueStakerAddressToInsert: UniqueStakerAddress[] = [];
   public UniqueLockerAddressToUpsert: UniqueLockerAddress[] = [];
@@ -30,4 +32,5 @@ export class Entities {
   public RewardsToInsert: RewardEvent[] = [];
   public RewardsAggregatedToUpsert: RewardAggregatedDaily[] = [];
   public SubperiodsToInsert: Subperiod[] = [];
+  public StakesPerDapAndPeriodToUpsert: StakesPerDapAndPeriod[] = [];
 }
