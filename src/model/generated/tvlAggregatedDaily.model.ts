@@ -18,4 +18,7 @@ export class TvlAggregatedDaily {
 
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     tvl!: bigint
+
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: false})
+    usdPrice!: number
 }

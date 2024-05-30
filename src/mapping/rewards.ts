@@ -10,7 +10,7 @@ import {
 import { events } from "../types";
 
 // Function to create and add a reward event
-function createAndAddRewardEvent(
+async function createAndAddRewardEvent(
   event: Event,
   decodedData: any,
   eventType: RewardEventType,
@@ -32,7 +32,13 @@ function createAndAddRewardEvent(
     blockNumber: BigInt(event.block.height),
   });
   entities.RewardsToInsert.push(rewardEvent);
-  createAndAddRewardsAggregated(event, decodedData, eventType, entities, ctx);
+  await createAndAddRewardsAggregated(
+    event,
+    decodedData,
+    eventType,
+    entities,
+    ctx
+  );
 }
 
 // Function to create and add a reward aggregated event
@@ -93,7 +99,7 @@ export async function handleRewards(
     case events.dappStaking.reward.name:
       if (events.dappStaking.reward.v1.is(event)) {
         const decodedData = events.dappStaking.reward.v1.decode(event);
-        createAndAddRewardEvent(
+        await createAndAddRewardEvent(
           event,
           decodedData,
           RewardEventType.Reward,
@@ -105,7 +111,7 @@ export async function handleRewards(
     case events.dappStaking.dAppReward.name:
       if (events.dappStaking.dAppReward.v1.is(event)) {
         const decodedData = events.dappStaking.dAppReward.v1.decode(event);
-        createAndAddRewardEvent(
+        await createAndAddRewardEvent(
           event,
           decodedData,
           RewardEventType.DAppReward,
@@ -117,7 +123,7 @@ export async function handleRewards(
     case events.dappStaking.bonusReward.name:
       if (events.dappStaking.bonusReward.v1.is(event)) {
         const decodedData = events.dappStaking.bonusReward.v1.decode(event);
-        createAndAddRewardEvent(
+        await createAndAddRewardEvent(
           event,
           decodedData,
           RewardEventType.BonusReward,

@@ -1,17 +1,21 @@
 manifestVersion: subsquid.io/v0.1
 name: dapps-staking-indexer-astar
-version: 2
+version: 3
 description: "ArrowSquid Indexer for Dapps Staking V3"
 build:
+scale:
+  dedicated: true
 deploy:
   addons:
     postgres:
+    rpc:
+      - astar-substrate:http
   processor:
     cmd:
       - node
       - lib/main
     env:
-      RPC_ENDPOINT: wss://rpc.astar.network
+      RPC_ENDPOINT: https://astar.api.onfinality.io/public
       BLOCK_RANGE: 4342300
       ARCHIVE: astar
       V3_FIRST_BLOCK: 5514934

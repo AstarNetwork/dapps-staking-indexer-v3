@@ -18,4 +18,7 @@ export class StakersCountAggregatedDaily {
 
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
     stakersAmount!: bigint
+
+    @Column_("numeric", {transformer: marshal.floatTransformer, nullable: false})
+    usdPrice!: number
 }
