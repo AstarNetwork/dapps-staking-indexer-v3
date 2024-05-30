@@ -6,6 +6,7 @@ import {
 } from "../model";
 import { Entities, getFirstTimestampOfTheDay } from "../utils";
 import { ProcessorContext, Block } from "../processor";
+import { getUsdPriceWithCache } from "../utils/getUsdPrice";
 
 export async function handleStakersCountAggregated(
   ctx: ProcessorContext<Store>,
@@ -49,12 +50,18 @@ export async function handleStakersCountAggregated(
     entity.stakersCount = totalStakers;
     entity.stakersAmount = totalAmount;
   } else {
+    const usdPrice = await getUsdPriceWithCache(
+      process.env.ARCHIVE!,
+      day.toString()
+    );
+
     entities.StakersCountAggregatedDailyToUpsert.push(
       new StakersCountAggregatedDaily({
         id: day.toString(),
         blockNumber: header.height,
         stakersCount: totalStakers,
         stakersAmount: totalAmount,
+        usdPrice,
       })
     );
   }

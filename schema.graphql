@@ -98,6 +98,7 @@ type StakersCountAggregatedDaily @entity {
   blockNumber: Int!
   stakersCount: Int!
   stakersAmount: BigInt!
+  usdPrice: Float!
 }
 
 type TvlAggregatedDaily @entity {
@@ -105,6 +106,7 @@ type TvlAggregatedDaily @entity {
   blockNumber: Int!
   lockersCount: Int!
   tvl: BigInt!
+  usdPrice: Float!
 }
 
 type Stake @entity {

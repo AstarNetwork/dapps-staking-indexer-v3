@@ -8,6 +8,7 @@ import {
   getFirstTimestampOfThePreviousDay,
 } from "../utils";
 import { TvlAggregatedDaily, Subperiod, UniqueLockerAddress } from "../model";
+import { getUsdPriceWithCache } from "../utils/getUsdPrice";
 
 export async function handleTvl(
   ctx: ProcessorContext<Store>,
@@ -20,10 +21,10 @@ export async function handleTvl(
 
   if (event.name === events.dappStaking.unlocking.name) {
     lockAmount = -amount;
-    deleteUniqueLockerAddress(lockAmount, address, ctx);
+    await deleteUniqueLockerAddress(lockAmount, address, ctx);
   } else {
     lockAmount = amount;
-    upsertUniqueLockerAddress(lockAmount, address, ctx, entities);
+    await upsertUniqueLockerAddress(lockAmount, address, ctx, entities);
   }
 
   const day = getFirstTimestampOfTheDay(event.block.timestamp ?? 0);
@@ -49,6 +50,10 @@ export async function handleTvl(
     } else {
       // New day started. Fetch prev day lock and add to it.
       const prevDayLock = await fetchPreviousDayWithTVL(ctx, day);
+      const usdPrice = await getUsdPriceWithCache(
+        process.env.ARCHIVE!,
+        day.toString()
+      );
 
       entities.TvlToInsert.push(
         new TvlAggregatedDaily({
@@ -56,6 +61,7 @@ export async function handleTvl(
           blockNumber: event.block.height,
           lockersCount: totalLockers,
           tvl: lockAmount + prevDayLock.tvl,
+          usdPrice,
         })
       );
     }
@@ -108,7 +114,7 @@ export async function upsertUniqueLockerAddress(
   } else {
     if (uniqueLockerAddress) {
       uniqueLockerAddress.amount += amount;
-      ctx.store.save(uniqueLockerAddress);
+      await ctx.store.save(uniqueLockerAddress);
       return;
     } else {
       entities.UniqueLockerAddressToUpsert.push(
@@ -134,9 +140,9 @@ export async function deleteUniqueLockerAddress(
     uniqueLockerAddress.amount += amount;
 
     if (uniqueLockerAddress.amount === 0n) {
-      ctx.store.remove(uniqueLockerAddress);
+      await ctx.store.remove(uniqueLockerAddress);
     } else {
-      ctx.store.save(uniqueLockerAddress);
+      await ctx.store.save(uniqueLockerAddress);
     }
   }
 }
