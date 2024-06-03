@@ -13,8 +13,9 @@ import { events } from "./types";
 
 const blockRange = { from: parseInt(process.env.BLOCK_RANGE!, 10) };
 console.log(`Block Range: ${blockRange.from}`);
+// See why shibuya archive is throwing an error.
 const archive =
-  process.env.ARCHIVE != ""
+  process.env.ARCHIVE !== "" && process.env.ARCHIVE !== "shibuya"
     ? lookupArchive(process.env.ARCHIVE!, {
         type: "Substrate",
         release: "ArrowSquid",
@@ -28,7 +29,7 @@ console.log(`Chain URL: ${chain}`);
 export const processor = new SubstrateBatchProcessor()
   .setDataSource({
     chain: assertNotNull(chain),
-    // archive: archive,
+    archive: archive,
   })
   .addEvent({
     name: [

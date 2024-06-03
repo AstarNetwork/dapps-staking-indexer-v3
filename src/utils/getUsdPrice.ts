@@ -35,7 +35,7 @@ export async function getUsdPrice(
 
       res.on("end", () => {
         const json = JSON.parse(body);
-        return resolve(Number(json.market_data.current_price.usd));
+        return resolve(Number(json.market_data?.current_price?.usd ?? 0));
       });
 
       res.on("error", (error) => {
