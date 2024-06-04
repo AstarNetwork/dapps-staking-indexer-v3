@@ -84,16 +84,8 @@ async function updateStakersCount(
   dappAggregated: DappAggregatedDaily | undefined,
   event: Event,
   day: number,
-  stake: Stake,
-  ctx: ProcessorContext<Store>
+  stake: Stake
 ) {
-  const newSubperiod = await ctx.store.findOneBy(Subperiod, {
-    timestamp: BigInt(day),
-  });
-
-  if (newSubperiod && newSubperiod.type === SubperiodType.Voting) {
-    return;
-  }
 
   if (dappAggregated) {
     const entity = entities.StakersCountToUpdate.find(
@@ -154,19 +146,19 @@ export async function handleStakersCount(
     dapp.stakersCount++;
     await upsertStakers(entities, stake, ctx, totalStake);
     await insertUniqueStakerAddress(entities, stake, ctx);
-    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
+    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake);
     return dapp;
   } else if (dapp && totalStake === 0n) {
     // user un-stakes everything.
     dapp.stakersCount--;
     await deleteStakers(stake, ctx);
     await deleteUniqueStakerAddress(stake, ctx);
-    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
+    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake);
     return dapp;
   } else if (dapp) {
     // user stakes again after un-staking some amount.
     await upsertStakers(entities, stake, ctx, totalStake);
-    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
+    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake);
   }
 
   return undefined;
