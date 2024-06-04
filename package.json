@@ -10,6 +10,7 @@
     "generate-metadata": "squid-substrate-metadata-explorer --rpc ws://127.0.0.1:9944 --out localNode.jsonl",
     "generate-migration": "npx squid-typeorm-migration generate",
     "apply-migration": "npx squid-typeorm-migration apply",
+    "deploy:astar": "sqd deploy . --org=astar-network --manifest=manifests/astar.yaml",
     "deploy:shibuya": "sqd deploy . --org=astar-network --manifest=manifests/shibuya.yaml",
     "deploy:shiden": "sqd deploy . --org=astar-network --manifest=manifests/shiden.yaml",
     "test": "jest"
