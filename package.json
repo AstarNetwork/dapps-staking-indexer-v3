@@ -1,6 +1,6 @@
 {
   "name": "dapps-staking-indexer-v3",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "private": true,
   "engines": {
     "node": ">=16"
@@ -8,6 +8,10 @@
   "scripts": {
     "build": "rm -rf lib && tsc",
     "generate-metadata": "squid-substrate-metadata-explorer --rpc ws://127.0.0.1:9944 --out localNode.jsonl",
+    "generate-migration": "npx squid-typeorm-migration generate",
+    "apply-migration": "npx squid-typeorm-migration apply",
+    "deploy:shibuya": "sqd deploy . --org=astar-network --manifest=manifests/shibuya.yaml",
+    "deploy:shiden": "sqd deploy . --org=astar-network --manifest=manifests/shiden.yaml",
     "test": "jest"
   },
   "dependencies": {

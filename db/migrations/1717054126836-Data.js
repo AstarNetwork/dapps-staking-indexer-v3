@@ -1,5 +1,5 @@
-module.exports = class Data1709593152409 {
-    name = 'Data1709593152409'
+module.exports = class Data1717054126836 {
+    name = 'Data1717054126836'
 
     async up(db) {
         await db.query(`CREATE TABLE "staking_event" ("id" character varying NOT NULL, "user_address" text NOT NULL, "transaction" character varying(24) NOT NULL, "contract_address" text, "amount" numeric NOT NULL, "timestamp" numeric NOT NULL, "block_number" numeric NOT NULL, CONSTRAINT "PK_c4f2c390140b9ff847dae450025" PRIMARY KEY ("id"))`)
@@ -23,13 +23,15 @@ module.exports = class Data1709593152409 {
         await db.query(`CREATE INDEX "IDX_e0a39337393345767f5ade298e" ON "stakers" ("staker_address") `)
         await db.query(`CREATE TABLE "unique_staker_address" ("id" character varying NOT NULL, CONSTRAINT "PK_396b05e05e564212be42284f5e9" PRIMARY KEY ("id"))`)
         await db.query(`CREATE TABLE "unique_locker_address" ("id" character varying NOT NULL, "amount" numeric NOT NULL, CONSTRAINT "PK_735d060368d3b390d435e94b623" PRIMARY KEY ("id"))`)
-        await db.query(`CREATE TABLE "stakers_count_aggregated_daily" ("id" character varying NOT NULL, "block_number" integer NOT NULL, "stakers_count" integer NOT NULL, "stakers_amount" numeric NOT NULL, "usd_price" numeric NOT NULL, CONSTRAINT "PK_9af211e5eba11987c7974e35e6b" PRIMARY KEY ("id"))`)
-        await db.query(`CREATE TABLE "tvl_aggregated_daily" ("id" character varying NOT NULL, "block_number" integer NOT NULL, "lockers_count" integer NOT NULL, "tvl" numeric NOT NULL, "usd_price" numeric NOT NULL, CONSTRAINT "PK_e3005bb3fc1befe9262ed239987" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE TABLE "stakers_count_aggregated_daily" ("id" character varying NOT NULL, "block_number" integer NOT NULL, "stakers_count" integer NOT NULL, "stakers_amount" numeric NOT NULL, CONSTRAINT "PK_9af211e5eba11987c7974e35e6b" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE TABLE "tvl_aggregated_daily" ("id" character varying NOT NULL, "block_number" integer NOT NULL, "lockers_count" integer NOT NULL, "tvl" numeric NOT NULL, CONSTRAINT "PK_e3005bb3fc1befe9262ed239987" PRIMARY KEY ("id"))`)
         await db.query(`CREATE TABLE "stake" ("id" character varying NOT NULL, "dapp_address" text NOT NULL, "staker_address" text NOT NULL, "amount" numeric NOT NULL, "timestamp" numeric NOT NULL, "block_number" integer NOT NULL, "expired_at" numeric, "expired_block_number" integer, CONSTRAINT "PK_8cfd82a65916af9d517d25a894e" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_8eeec8a2e938afa3ec806f3dff" ON "stake" ("dapp_address") `)
         await db.query(`CREATE INDEX "IDX_ad3d50534c02a5dd642593a9b8" ON "stake" ("expired_at") `)
         await db.query(`CREATE TABLE "subperiod" ("id" character varying NOT NULL, "type" character varying(12) NOT NULL, "block_number" integer NOT NULL, "timestamp" numeric NOT NULL, CONSTRAINT "PK_146e2c5964c45574297fd34f99a" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_505d7a5596fd04e6362811a651" ON "subperiod" ("timestamp") `)
+        await db.query(`CREATE TABLE "stakes_per_dap_and_period" ("id" character varying NOT NULL, "dapp_address" text NOT NULL, "period" integer NOT NULL, "stake_amount" numeric NOT NULL, "reward_amount" numeric NOT NULL, CONSTRAINT "PK_8acd6ae40c5881dc53c24720a2f" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE INDEX "IDX_1c1b10c923d2ebdd3ac8d87d02" ON "stakes_per_dap_and_period" ("dapp_address") `)
     }
 
     async down(db) {
@@ -61,5 +63,7 @@ module.exports = class Data1709593152409 {
         await db.query(`DROP INDEX "public"."IDX_ad3d50534c02a5dd642593a9b8"`)
         await db.query(`DROP TABLE "subperiod"`)
         await db.query(`DROP INDEX "public"."IDX_505d7a5596fd04e6362811a651"`)
+        await db.query(`DROP TABLE "stakes_per_dap_and_period"`)
+        await db.query(`DROP INDEX "public"."IDX_1c1b10c923d2ebdd3ac8d87d02"`)
     }
 }
