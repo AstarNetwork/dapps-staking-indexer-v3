@@ -10,6 +10,7 @@ import {
 import { Event, ProcessorContext } from "../processor";
 import { Entities, getFirstTimestampOfTheDay } from "../utils";
 import { IsNull } from "typeorm";
+import { updateDapp } from "./dapp";
 
 export async function handleSubperiod(
   ctx: ProcessorContext<Store>,
@@ -35,7 +36,7 @@ export async function handleSubperiod(
 
       for (const dapp of dapps) {
         dapp.stakersCount = 0;
-        entities.DappsToUpdate.push(dapp);
+        updateDapp(dapp, entities);
 
         // Stake Store
         let stakes = await ctx.store.findBy(Stake, {
