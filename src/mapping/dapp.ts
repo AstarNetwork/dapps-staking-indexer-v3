@@ -84,16 +84,8 @@ async function updateStakersCount(
   dappAggregated: DappAggregatedDaily | undefined,
   event: Event,
   day: number,
-  stake: Stake,
-  ctx: ProcessorContext<Store>
+  stake: Stake
 ) {
-  const newSubperiod = await ctx.store.findOneBy(Subperiod, {
-    timestamp: BigInt(day),
-  });
-
-  if (newSubperiod && newSubperiod.type === SubperiodType.Voting) {
-    return;
-  }
 
   if (dappAggregated) {
     const entity = entities.StakersCountToUpdate.find(
@@ -145,28 +137,24 @@ export async function handleStakersCount(
     dappAddress: stake.dappAddress,
   });
 
-  const totalStake = stakes.reduce((a, b) => a + b.amount, 0n);
-  if (
-    dapp &&
-    (stakes.length === 1 || (stakes.length > 1 && totalStake === stake.amount))
-  ) {
-    // user stakes the first time or stakes again after un-staking everything before.
-    dapp.stakersCount++;
+  if (dapp) {
+    const totalStake = stakes.reduce((a, b) => a + b.amount, 0n);
+
+    // it means user staked to dapp
+    if (stake.amount > 0n) {
+      await upsertStakers(entities, stake, ctx, totalStake);
+      await insertUniqueStakerAddress(entities, stake, ctx);
+    } else {
+      await deleteStakers(stake, ctx);
+      await deleteUniqueStakerAddress(stake, ctx);
+    }
+
+    const totalStakerCount = await getStakersList(ctx, entities, dapp);
+    dapp.stakersCount = totalStakerCount.length;
     await upsertStakers(entities, stake, ctx, totalStake);
-    await insertUniqueStakerAddress(entities, stake, ctx);
-    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
+    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake);
+
     return dapp;
-  } else if (dapp && totalStake === 0n) {
-    // user un-stakes everything.
-    dapp.stakersCount--;
-    await deleteStakers(stake, ctx);
-    await deleteUniqueStakerAddress(stake, ctx);
-    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
-    return dapp;
-  } else if (dapp) {
-    // user stakes again after un-staking some amount.
-    await upsertStakers(entities, stake, ctx, totalStake);
-    await updateStakersCount(entities, dapp, dappAggregated, event, day, stake, ctx);
   }
 
   return undefined;
@@ -271,4 +259,71 @@ async function getDapp(
   const dapp = await ctx.store.findOneBy(Dapp, { id: address });
 
   return dapp;
+}
+
+async function getStakersList(
+  ctx: ProcessorContext<Store>,
+  entities: Entities,
+  dapp: Dapp,
+) {
+  const stakesFromDatabase = await ctx.store.findBy(Stake, {
+      expiredAt: IsNull(),
+      dappAddress: dapp.id // this is address of dapp staking contract
+    }
+  );
+
+  const stakesToUpserts = entities.StakersToUpsert.filter(staker => staker.dappAddress === dapp.id);
+
+  const stakes: Array<{ id: string, stakerAddress: string, amount: bigint }> = [];
+
+  stakesFromDatabase.forEach(stake => {
+    stakes.push({
+      id: stake.id,
+      stakerAddress: stake.stakerAddress,
+      amount: stake.amount
+    })
+  })
+
+  stakesToUpserts.forEach(stake => {
+    const index = stakes.findIndex(_stake => _stake.id === stake.id);
+
+    if (index === -1) {
+      stakes.push(stake)
+    } else {
+      stakes[index] = stake;
+    }
+  })
+
+  const sumsByStaker: { [key: string]: bigint } = stakes.reduce(
+    (acc: { [key: string]: bigint }, { stakerAddress, amount }) => {
+        acc[stakerAddress] = (acc[stakerAddress] || BigInt(0)) + BigInt(amount);
+        return acc;
+    },
+    {},
+  );
+
+  const stakersList = Object.entries(sumsByStaker)
+    .map(([stakerAddress, amount]) => ({
+        stakerAddress,
+        amount,
+    }))
+    .filter((staker) => staker.amount !== BigInt(0));
+
+  return stakersList
+}
+
+export function updateDapp(dapp: Dapp, entities: Entities) {
+  const existedDappIndexes: Array<number> = [];
+
+  entities.DappsToUpdate.forEach((d, index) => {
+    if (d.id === dapp.id) {
+      existedDappIndexes.push(index)
+    }
+  })
+
+  for (const existedIndex of existedDappIndexes) {
+    entities.DappsToUpdate.splice(existedIndex, 1)
+  }
+
+  entities.DappsToUpdate.push(dapp);
 }

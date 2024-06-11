@@ -22,6 +22,7 @@ import {
   updateBeneficiary,
   handleTvl,
   handleStakersCount,
+  updateDapp,
 } from "./mapping";
 import { aggregateStakesPerDapp, getStake } from "./mapping/stake";
 import { handleSubperiod } from "./mapping/subperiod";
@@ -258,16 +259,15 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           break;
         case events.dappStaking.dAppUnregistered.name:
           const unregisteredDapp = await unregisterDapp(ctx, event);
-          unregisteredDapp && entities.DappsToUpdate.push(unregisteredDapp);
+          unregisteredDapp && updateDapp(unregisteredDapp, entities);
           break;
         case events.dappStaking.dAppOwnerChanged.name:
           const ownerChangedDapp = await updateOwner(ctx, event);
-          ownerChangedDapp && entities.DappsToUpdate.push(ownerChangedDapp);
+          ownerChangedDapp && updateDapp(ownerChangedDapp, entities);
           break;
         case events.dappStaking.dAppRewardDestinationUpdated.name:
           const beneficiaryChangedDapp = await updateBeneficiary(ctx, event);
-          beneficiaryChangedDapp &&
-            entities.DappsToUpdate.push(beneficiaryChangedDapp);
+          beneficiaryChangedDapp && updateDapp(beneficiaryChangedDapp, entities);
           break;
         case events.dappStaking.locked.name:
         case events.dappStaking.unlocking.name:
@@ -281,14 +281,8 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           const stake = getStake(event);
           entities.StakesToInsert.push(stake);
           const dapp = await handleStakersCount(ctx, stake, entities, event);
-          const index = entities.DappsToUpdate.findIndex(
-            (d) => d.id === dapp?.id
-          );
-          // If found, remove it from the array
-          if (index !== -1) {
-            entities.DappsToUpdate.splice(index, 1);
-          }
-          dapp && entities.DappsToUpdate.push(dapp);
+
+          if (dapp) updateDapp(dapp, entities)
 
           const period = getPeriodForBlock(block.header.height);
           await aggregateStakesPerDapp(

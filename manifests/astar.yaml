@@ -1,10 +1,12 @@
 manifestVersion: subsquid.io/v0.1
 name: dapps-staking-indexer-astar
-version: 3
+version: 7
 description: "ArrowSquid Indexer for Dapps Staking V3"
 build:
 scale:
   dedicated: true
+  processor:
+    profile: medium
 deploy:
   addons:
     postgres:
