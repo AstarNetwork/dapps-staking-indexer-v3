@@ -5,6 +5,8 @@ description: "ArrowSquid Indexer for Dapps Staking V3"
 build:
 scale:
   dedicated: true
+  processor:
+    profile: medium
 deploy:
   addons:
     postgres:
