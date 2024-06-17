@@ -27,16 +27,19 @@ export async function aggregateStakesPerDapp(
   rewardAmount: bigint,
   period: number
 ) {
+  // Check if the entity is already in memory.
   const id = `${dappAddress}_${period}`;
   let entity = entities.StakesPerDapAndPeriodToUpsert.find((x) => x.id === id);
   let isEntityInMemory = true;
 
   if (entity === undefined) {
+    // If not in memory, load from database.
     isEntityInMemory = false;
     entity = await ctx.store.get(StakesPerDapAndPeriod, id);
   }
 
   if (entity === undefined) {
+    // If not in database, create a new entity.
     entities.StakesPerDapAndPeriodToUpsert.push(
       new StakesPerDapAndPeriod({
         id,

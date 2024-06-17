@@ -14,6 +14,7 @@ import {
   getDayIdentifier,
   getFirstTimestampOfTheNextDay,
   getFirstTimestampOfTheDay,
+  getContractAddress,
 } from "./utils";
 import {
   updateOwner,
@@ -91,7 +92,9 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
   for (let block of ctx.blocks) {
     for (let event of block.events) {
       let decoded;
-      ctx.log.info(`Processing event: ${event.name}`);
+      ctx.log.info(
+        `Processing event: ${event.name}, block ${block.header.height}`
+      );
 
       switch (event.name) {
         case events.dappsStaking.bondAndStake.name:
@@ -267,7 +270,8 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           break;
         case events.dappStaking.dAppRewardDestinationUpdated.name:
           const beneficiaryChangedDapp = await updateBeneficiary(ctx, event);
-          beneficiaryChangedDapp && updateDapp(beneficiaryChangedDapp, entities);
+          beneficiaryChangedDapp &&
+            updateDapp(beneficiaryChangedDapp, entities);
           break;
         case events.dappStaking.locked.name:
         case events.dappStaking.unlocking.name:
@@ -282,9 +286,16 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           entities.StakesToInsert.push(stake);
           const dapp = await handleStakersCount(ctx, stake, entities, event);
 
-          if (dapp) updateDapp(dapp, entities)
+          if (dapp) updateDapp(dapp, entities);
 
           const period = getPeriodForBlock(block.header.height);
+          if (period <= 0) {
+            // Noticed negative periods for Shiden
+            ctx.log.warn(
+              `Period is ${period} for block ${block.header.height}`
+            );
+          }
+
           await aggregateStakesPerDapp(
             ctx,
             entities,
@@ -306,10 +317,14 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           if (event.name === events.dappStaking.dAppReward.name) {
             const decodedData = events.dappStaking.dAppReward.v1.decode(event);
             const period = getPeriodForEra(decodedData.era);
+            const contractAddress = getContractAddress(
+              event.args.smartContract
+            );
+
             await aggregateStakesPerDapp(
               ctx,
               entities,
-              decodedData.smartContract.value,
+              contractAddress,
               BigInt(0),
               decodedData.amount,
               period
