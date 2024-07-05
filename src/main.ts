@@ -289,13 +289,6 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           if (dapp) updateDapp(dapp, entities);
 
           const period = getPeriodForBlock(block.header.height);
-          if (period <= 0) {
-            // Noticed negative periods for Shiden
-            ctx.log.warn(
-              `Period is ${period} for block ${block.header.height}`
-            );
-          }
-
           await aggregateStakesPerDapp(
             ctx,
             entities,
@@ -316,7 +309,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
 
           if (event.name === events.dappStaking.dAppReward.name) {
             const decodedData = events.dappStaking.dAppReward.v1.decode(event);
-            const period = getPeriodForEra(decodedData.era);
+            const period = getPeriodForBlock(event.block.height);
             const contractAddress = getContractAddress(
               event.args.smartContract
             );
