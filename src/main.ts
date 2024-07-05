@@ -29,7 +29,7 @@ import { aggregateStakesPerDapp, getStake } from "./mapping/stake";
 import { handleSubperiod } from "./mapping/subperiod";
 import { handleRewards } from "./mapping/rewards";
 import { handleStakersCountAggregated } from "./mapping/stakersCount";
-import { getPeriodForBlock, getPeriodForEra } from "./mapping/protocolState";
+import { getPeriodForBlock } from "./mapping/protocolState";
 
 // supportHotBlocks: true is actually the default, adding it so that it's obvious how to disable it
 processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
