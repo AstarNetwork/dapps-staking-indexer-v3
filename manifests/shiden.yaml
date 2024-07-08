@@ -22,7 +22,7 @@ deploy:
       ARCHIVE: shiden
       V3_FIRST_BLOCK: 5876078
       V3_PERIOD_LENGTH: 439200
-      V3_FIRST_ERA: 4303
+      V3_FIRST_ERA: 743
       V3_ERAS_PER_PERIOD: 56
   api:
     cmd:

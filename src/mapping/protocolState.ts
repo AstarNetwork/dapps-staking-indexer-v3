@@ -28,10 +28,11 @@ export function getPeriodForBlock(blockNumber: number): number {
 
 export function getPeriodForEra(eraNumber: number): number {
   checkEnv();
-  return (
+  const result =
     Math.floor(
       (eraNumber - Number(process.env.V3_FIRST_ERA)) /
         Number(process.env.V3_ERAS_PER_PERIOD)
-    ) + 1
-  );
+    ) + 1;
+
+  return result;
 }

@@ -2,7 +2,7 @@ import { Store } from "@subsquid/typeorm-store";
 import { Event, ProcessorContext } from "../processor";
 import { Entities, getContractAddress, getSs58Address } from "../utils";
 import { events } from "../types";
-import { getPeriodForBlock } from "./protocolState";
+import { getPeriodForBlock, getPeriodForEra } from "./protocolState";
 import { aggregateStakesPerDapp, aggregateStakesPerStaker } from "./stake";
 
 export async function handleRewardsPeriodAggregation(
@@ -10,8 +10,6 @@ export async function handleRewardsPeriodAggregation(
   entities: Entities,
   ctx: ProcessorContext<Store>
 ): Promise<void> {
-  const period = getPeriodForBlock(event.block.height);
-
   switch (event.name) {
     case events.dappStaking.reward.name:
       const decodedData = events.dappStaking.reward.v1.decode(event);
@@ -22,7 +20,7 @@ export async function handleRewardsPeriodAggregation(
         BigInt(0),
         decodedData.amount,
         BigInt(0),
-        period
+        getPeriodForEra(decodedData.era)
       );
       break;
     case events.dappStaking.dAppReward.name:
@@ -35,7 +33,7 @@ export async function handleRewardsPeriodAggregation(
         contractAddress,
         BigInt(0),
         decodedDataDapp.amount,
-        period
+        getPeriodForEra(decodedDataDapp.era)
       );
       break;
     case events.dappStaking.bonusReward.name:
@@ -47,7 +45,7 @@ export async function handleRewardsPeriodAggregation(
         BigInt(0),
         BigInt(0),
         decodedDataBonus.amount,
-        period
+        decodedDataBonus.period
       );
       break;
     default:
