@@ -14,7 +14,6 @@ import {
   getDayIdentifier,
   getFirstTimestampOfTheNextDay,
   getFirstTimestampOfTheDay,
-  getContractAddress,
 } from "./utils";
 import {
   updateOwner,
@@ -25,11 +24,16 @@ import {
   handleStakersCount,
   updateDapp,
 } from "./mapping";
-import { aggregateStakesPerDapp, getStake } from "./mapping/stake";
+import {
+  aggregateStakesPerDapp,
+  aggregateStakesPerStaker,
+  getStake,
+} from "./mapping/stake";
 import { handleSubperiod } from "./mapping/subperiod";
 import { handleRewards } from "./mapping/rewards";
 import { handleStakersCountAggregated } from "./mapping/stakersCount";
 import { getPeriodForBlock } from "./mapping/protocolState";
+import { handleRewardsPeriodAggregation } from "./mapping/periodAggregation";
 
 // supportHotBlocks: true is actually the default, adding it so that it's obvious how to disable it
 processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
@@ -86,6 +90,7 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
   await ctx.store.upsert(entities.StakesToUpdate);
   await ctx.store.insert(entities.SubperiodsToInsert);
   await ctx.store.upsert(entities.StakesPerDapAndPeriodToUpsert);
+  await ctx.store.upsert(entities.StakesPerStakerAndPeriodToUpsert);
 });
 
 async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
@@ -298,6 +303,16 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
             period
           );
 
+          await aggregateStakesPerStaker(
+            ctx,
+            entities,
+            stake.stakerAddress,
+            stake.amount,
+            BigInt(0),
+            BigInt(0),
+            period
+          );
+
           break;
         case events.dappStaking.newSubperiod.name:
           await handleSubperiod(ctx, event, entities);
@@ -306,23 +321,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
         case events.dappStaking.bonusReward.name:
         case events.dappStaking.dAppReward.name:
           await handleRewards(event, entities, ctx);
-
-          if (event.name === events.dappStaking.dAppReward.name) {
-            const decodedData = events.dappStaking.dAppReward.v1.decode(event);
-            const period = getPeriodForBlock(event.block.height);
-            const contractAddress = getContractAddress(
-              event.args.smartContract
-            );
-
-            await aggregateStakesPerDapp(
-              ctx,
-              entities,
-              contractAddress,
-              BigInt(0),
-              decodedData.amount,
-              period
-            );
-          }
+          await handleRewardsPeriodAggregation(event, entities, ctx);
 
           break;
         default:

@@ -12,6 +12,7 @@ import {
   Subperiod,
   RewardAggregatedDaily,
   StakesPerDapAndPeriod,
+  StakesPerStakerAndPeriod,
 } from "../model";
 
 export class Entities {
@@ -33,4 +34,5 @@ export class Entities {
   public RewardsAggregatedToUpsert: RewardAggregatedDaily[] = [];
   public SubperiodsToInsert: Subperiod[] = [];
   public StakesPerDapAndPeriodToUpsert: StakesPerDapAndPeriod[] = [];
+  public StakesPerStakerAndPeriodToUpsert: StakesPerStakerAndPeriod[] = [];
 }

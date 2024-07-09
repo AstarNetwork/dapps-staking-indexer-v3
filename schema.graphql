@@ -139,3 +139,12 @@ type StakesPerDapAndPeriod @entity {
   stakeAmount: BigInt!
   rewardAmount: BigInt!
 }
+
+type StakesPerStakerAndPeriod @entity {
+  id: ID!
+  stakerAddress: String! @index
+  period: Int!
+  stakeAmount: BigInt!
+  stakerRewardAmount: BigInt!
+  bonusRewardAmount: BigInt!
+}
