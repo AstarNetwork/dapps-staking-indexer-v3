@@ -34,6 +34,7 @@ import { handleRewards } from "./mapping/rewards";
 import { handleStakersCountAggregated } from "./mapping/stakersCount";
 import { getPeriodForBlock } from "./mapping/protocolState";
 import { handleRewardsPeriodAggregation } from "./mapping/periodAggregation";
+import { insertBurnEvent } from "./mapping/burn";
 
 // supportHotBlocks: true is actually the default, adding it so that it's obvious how to disable it
 processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
@@ -90,6 +91,7 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
   await ctx.store.insert(entities.SubperiodsToInsert);
   await ctx.store.upsert(entities.StakesPerDapAndPeriodToUpsert);
   await ctx.store.upsert(entities.StakesPerStakerAndPeriodToUpsert);
+  await ctx.store.insert(entities.BurnEventsToInsert);
 });
 
 async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
@@ -102,9 +104,9 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
 
       switch (event.name) {
         case events.dappsStaking.bondAndStake.name:
-          if (events.dappsStaking.bondAndStake.v4.is(event)) {
+          if (events.dappsStaking.bondAndStake.v1.is(event)) {
             let [account, contract, amount] =
-              events.dappsStaking.bondAndStake.v4.decode(event);
+              events.dappsStaking.bondAndStake.v1.decode(event);
             decoded = {
               account,
               contractAddr:
@@ -133,9 +135,9 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           break;
 
         case events.dappsStaking.nominationTransfer.name:
-          if (events.dappsStaking.nominationTransfer.v17.is(event)) {
+          if (events.dappsStaking.nominationTransfer.v1.is(event)) {
             let [account, origin, amount, target] =
-              events.dappsStaking.nominationTransfer.v17.decode(event);
+              events.dappsStaking.nominationTransfer.v1.decode(event);
             decoded = {
               account,
               originAddr:
@@ -170,9 +172,9 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           break;
 
         case events.dappsStaking.withdrawn.name:
-          if (events.dappsStaking.withdrawn.v12.is(event)) {
+          if (events.dappsStaking.withdrawn.v1.is(event)) {
             let [account, amount] =
-              events.dappsStaking.withdrawn.v12.decode(event);
+              events.dappsStaking.withdrawn.v1.decode(event);
             decoded = {
               account,
               amount,
@@ -196,9 +198,9 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           break;
 
         case events.dappsStaking.withdrawFromUnregistered.name:
-          if (events.dappsStaking.withdrawFromUnregistered.v12.is(event)) {
+          if (events.dappsStaking.withdrawFromUnregistered.v1.is(event)) {
             let [account, contract, amount] =
-              events.dappsStaking.withdrawFromUnregistered.v12.decode(event);
+              events.dappsStaking.withdrawFromUnregistered.v1.decode(event);
             decoded = {
               account,
               contractAddr:
@@ -229,9 +231,9 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           break;
 
         case events.dappsStaking.unbondAndUnstake.name:
-          if (events.dappsStaking.unbondAndUnstake.v12.is(event)) {
+          if (events.dappsStaking.unbondAndUnstake.v1.is(event)) {
             let [account, contract, amount] =
-              events.dappsStaking.unbondAndUnstake.v12.decode(event);
+              events.dappsStaking.unbondAndUnstake.v1.decode(event);
             decoded = {
               account,
               contractAddr:
@@ -322,6 +324,9 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           await handleRewards(event, entities, ctx);
           await handleRewardsPeriodAggregation(event, entities, ctx);
 
+          break;
+        case events.balances.burned.name:
+          insertBurnEvent(entities, event, ctx);
           break;
         default:
           ctx.log.warn(`Unhandled event: ${event.name}`);
