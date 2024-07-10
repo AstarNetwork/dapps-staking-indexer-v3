@@ -2,6 +2,10 @@ import https from "https";
 
 const priceCache = new Map<string, number>();
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function getUsdPriceWithCache(
   token: string,
   timestamp: string
@@ -11,7 +15,14 @@ export async function getUsdPriceWithCache(
     return Number(priceCache.get(cacheKey));
   } else {
     const price = await getUsdPrice(token, timestamp);
-    priceCache.set(cacheKey, price);
+    if (price > 0) {
+      priceCache.set(cacheKey, price);
+    } else {
+      // We hit the rate limit, wait a bit and try again.
+      // This can possibly happen once per day, because price is cached,
+      // so it is not a big deal to wait.
+      await sleep(10000);
+    }
     return price;
   }
 }

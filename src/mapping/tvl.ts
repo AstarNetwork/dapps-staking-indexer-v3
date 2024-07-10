@@ -28,42 +28,54 @@ export async function handleTvl(
   }
 
   const day = getFirstTimestampOfTheDay(event.block.timestamp ?? 0);
-  const totalLockers: number = await ctx.store.count(UniqueLockerAddress);
+  const totalLockers: number =
+    (await ctx.store.count(UniqueLockerAddress)) +
+    entities.UniqueStakerAddressToInsert.length;
 
-  const entity =
-    entities.TvlToInsert.find((e) => e.id === day.toString()) ||
-    entities.TvlToUpdate.find((e) => e.id === day.toString());
+  let entity = entities.TvlToUpsert.find((x) => x.id === day.toString());
+  let isEntityInMemory = true;
 
-  if (entity) {
-    entity.tvl += lockAmount;
-    entity.lockersCount = totalLockers;
-  } else {
-    const lock = await ctx.store.findOneBy(TvlAggregatedDaily, {
+  if (entity === undefined) {
+    // If not in memory, load from database.
+    isEntityInMemory = false;
+    entity = await ctx.store.findOneBy(TvlAggregatedDaily, {
       id: day.toString(),
     });
+  }
 
-    if (lock) {
-      lock.tvl += lockAmount;
-      lock.lockersCount = totalLockers;
-      lock.blockNumber = event.block.height;
-      entities.TvlToUpdate.push(lock);
-    } else {
-      // New day started. Fetch prev day lock and add to it.
-      const prevDayLock = await fetchPreviousDayWithTVL(ctx, day);
+  if (entity === undefined) {
+    // If not in database, create a new entity.
+    // New day started. Fetch prev day lock and add to it.
+    const prevDayLock = await fetchPreviousDayWithTVL(ctx, day, entities);
+    const usdPrice = await getUsdPriceWithCache(
+      process.env.ARCHIVE!,
+      day.toString()
+    );
+
+    entities.TvlToUpsert.push(
+      new TvlAggregatedDaily({
+        id: day.toString(),
+        blockNumber: event.block.height,
+        lockersCount: totalLockers,
+        tvl: lockAmount + prevDayLock.tvl,
+        usdPrice,
+      })
+    );
+  } else {
+    entity.tvl += lockAmount;
+    entity.lockersCount = totalLockers;
+    entity.blockNumber = event.block.height;
+
+    if (entity.usdPrice === 0) {
       const usdPrice = await getUsdPriceWithCache(
         process.env.ARCHIVE!,
         day.toString()
       );
+      entity.usdPrice = usdPrice;
+    }
 
-      entities.TvlToInsert.push(
-        new TvlAggregatedDaily({
-          id: day.toString(),
-          blockNumber: event.block.height,
-          lockersCount: totalLockers,
-          tvl: lockAmount + prevDayLock.tvl,
-          usdPrice,
-        })
-      );
+    if (!isEntityInMemory) {
+      entities.TvlToUpsert.push(entity);
     }
   }
 }
@@ -71,7 +83,8 @@ export async function handleTvl(
 // Fetches the TVL (Total Value Locked) for the first day prior to the initial day with an available TVL.
 async function fetchPreviousDayWithTVL(
   ctx: ProcessorContext<Store>,
-  initialDay: number
+  initialDay: number,
+  entities: Entities
 ): Promise<TvlAggregatedDaily> {
   // Pre-fetch all subperiods to determine if special handling is needed
   const subperiods = await ctx.store.find(Subperiod);
@@ -79,9 +92,15 @@ async function fetchPreviousDayWithTVL(
   let day = initialDay;
   while (true) {
     const prevDay = getFirstTimestampOfThePreviousDay(day);
-    const prevDayLock = await ctx.store.findOneBy(TvlAggregatedDaily, {
-      id: prevDay.toString(),
-    });
+    let prevDayLock = entities.TvlToUpsert.find(
+      (x) => x.id === prevDay.toString()
+    );
+
+    if (prevDayLock === undefined) {
+      prevDayLock = await ctx.store.findOneBy(TvlAggregatedDaily, {
+        id: prevDay.toString(),
+      });
+    }
 
     if (prevDayLock?.tvl) {
       return prevDayLock;
