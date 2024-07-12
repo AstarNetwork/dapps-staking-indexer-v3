@@ -1,6 +1,6 @@
 import { Store } from "@subsquid/typeorm-store";
 import { Event, ProcessorContext } from "../processor";
-import { Entities } from "../utils";
+import { Entities, getSs58Address } from "../utils";
 import { events } from "../types";
 import { Burn } from "../model";
 
@@ -15,7 +15,7 @@ export async function insertBurnEvent(
       id: event.id,
       timestamp: BigInt(event.block.timestamp ?? 0),
       amount: decodedData.amount,
-      user: decodedData.who,
+      user: getSs58Address(decodedData.who),
       blockNumber: event.block.height,
     });
     entities.BurnEventsToInsert.push(burn);

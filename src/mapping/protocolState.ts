@@ -36,3 +36,7 @@ export function getPeriodForEra(eraNumber: number): number {
 
   return result;
 }
+
+export function isShibuya(): boolean {
+  return process.env.ARCHIVE === "shibuya";
+}
