@@ -1,3 +1,5 @@
+export const IS_SHIBUYA = process.env.ARCHIVE === "shibuya";
+
 function checkEnv() {
   if (!process.env.V3_FIRST_BLOCK) {
     throw new Error("V3_FIRST_BLOCK is not set");
@@ -35,8 +37,4 @@ export function getPeriodForEra(eraNumber: number): number {
     ) + 1;
 
   return result;
-}
-
-export function isShibuya(): boolean {
-  return process.env.ARCHIVE === "shibuya";
 }
