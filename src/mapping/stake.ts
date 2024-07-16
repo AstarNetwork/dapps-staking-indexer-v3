@@ -8,7 +8,7 @@ import { Event, ProcessorContext } from "../processor";
 import { events } from "../types";
 import { Entities, getContractAddress, getSs58Address } from "../utils";
 
-export function getStake(event: Event): Stake {
+export function getStake(event: Event, period: number): Stake {
   const amount = BigInt(event.args.amount);
   const stakeAmount =
     event.name === events.dappStaking.stake.name ? amount : -amount;
@@ -20,6 +20,7 @@ export function getStake(event: Event): Stake {
     blockNumber: event.block.height,
     timestamp: BigInt(event.block.timestamp ?? 0),
     amount: stakeAmount,
+    period,
   });
 }
 

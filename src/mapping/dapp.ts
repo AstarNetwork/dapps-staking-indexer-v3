@@ -17,7 +17,7 @@ import {
   getSs58Address,
 } from "../utils";
 import { SmartContract } from "../types/v1";
-import { IsNull } from "typeorm";
+import { getPeriodForBlock } from "./protocolState";
 
 export function registerDapp(event: Event): Dapp {
   return new Dapp({
@@ -86,7 +86,6 @@ async function updateStakersCount(
   day: number,
   stake: Stake
 ) {
-
   if (dappAggregated) {
     const entity = entities.StakersCountToUpdate.find(
       (e) => e.timestamp === BigInt(day) && e.dappAddress === stake.dappAddress
@@ -124,11 +123,14 @@ export async function handleStakersCount(
   entities: Entities,
   event: Event
 ): Promise<Dapp | undefined> {
-  const dapp = await ctx.store.findOneBy(Dapp, { id: stake.dappAddress });
+  const period = getPeriodForBlock(event.block.height);
+  const dapp =
+    entities.DappsToInsert.find((x) => x.id === stake.dappAddress) ??
+    (await ctx.store.findOneBy(Dapp, { id: stake.dappAddress }));
   const stakes = await ctx.store.findBy(Stake, {
     dappAddress: stake.dappAddress,
     stakerAddress: stake.stakerAddress,
-    expiredAt: IsNull(),
+    period,
   });
   stakes.push(stake); // Current stake is not yet in the db.
   const day = getFirstTimestampOfTheDay(event.block.timestamp ?? 0);
@@ -149,8 +151,8 @@ export async function handleStakersCount(
       await deleteUniqueStakerAddress(stake, ctx);
     }
 
-    const totalStakerCount = await getStakersList(ctx, entities, dapp);
-    dapp.stakersCount = totalStakerCount.length;
+    const totalStakerCount = await getStakersCount(ctx, entities, dapp, period);
+    dapp.stakersCount = totalStakerCount;
     await upsertStakers(entities, stake, ctx, totalStake);
     await updateStakersCount(entities, dapp, dappAggregated, event, day, stake);
 
@@ -265,51 +267,87 @@ async function getStakersList(
   ctx: ProcessorContext<Store>,
   entities: Entities,
   dapp: Dapp,
+  period: number
 ) {
   const stakesFromDatabase = await ctx.store.findBy(Stake, {
-      expiredAt: IsNull(),
-      dappAddress: dapp.id // this is address of dapp staking contract
-    }
+    period,
+    dappAddress: dapp.id, // this is address of dapp staking contract
+  });
+
+  const stakesToUpserts = entities.StakersToUpsert.filter(
+    (staker) => staker.dappAddress === dapp.id
   );
 
-  const stakesToUpserts = entities.StakersToUpsert.filter(staker => staker.dappAddress === dapp.id);
+  const stakes: Array<{ id: string; stakerAddress: string; amount: bigint }> =
+    [];
 
-  const stakes: Array<{ id: string, stakerAddress: string, amount: bigint }> = [];
-
-  stakesFromDatabase.forEach(stake => {
+  stakesFromDatabase.forEach((stake) => {
     stakes.push({
       id: stake.id,
       stakerAddress: stake.stakerAddress,
-      amount: stake.amount
-    })
-  })
+      amount: stake.amount,
+    });
+  });
 
-  stakesToUpserts.forEach(stake => {
-    const index = stakes.findIndex(_stake => _stake.id === stake.id);
+  stakesToUpserts.forEach((stake) => {
+    const index = stakes.findIndex((_stake) => _stake.id === stake.id);
 
     if (index === -1) {
-      stakes.push(stake)
+      stakes.push(stake);
     } else {
       stakes[index] = stake;
     }
-  })
+  });
 
   const sumsByStaker: { [key: string]: bigint } = stakes.reduce(
     (acc: { [key: string]: bigint }, { stakerAddress, amount }) => {
-        acc[stakerAddress] = (acc[stakerAddress] || BigInt(0)) + BigInt(amount);
-        return acc;
+      acc[stakerAddress] = (acc[stakerAddress] || BigInt(0)) + BigInt(amount);
+      return acc;
     },
-    {},
+    {}
   );
 
   const stakersList = Object.entries(sumsByStaker)
     .map(([stakerAddress, amount]) => ({
-        stakerAddress,
-        amount,
+      stakerAddress,
+      amount,
     }))
     .filter((staker) => staker.amount !== BigInt(0));
 
-  return stakersList
+  return stakersList;
+}
+
+async function getStakersCount(
+  ctx: ProcessorContext<Store>,
+  entities: Entities,
+  dapp: Dapp,
+  period: number
+): Promise<number> {
+  const stakesFromDatabase = await ctx.store.findBy(Stake, {
+    period,
+    dappAddress: dapp.id, // this is address of dapp staking contract
+  });
+  const stakesToInsert = entities.StakesToInsert.filter(
+    (x) => x.dappAddress === dapp.id && x.period === period
+  );
+  const allStakes = stakesFromDatabase.concat(stakesToInsert);
+
+  const sumsByStaker: { [key: string]: bigint } = allStakes.reduce(
+    (acc: { [key: string]: bigint }, { stakerAddress, amount }) => {
+      acc[stakerAddress] = (acc[stakerAddress] || BigInt(0)) + BigInt(amount);
+      return acc;
+    },
+    {}
+  );
+
+  const activeStakers = Object.entries(sumsByStaker)
+    .map(([stakerAddress, amount]) => ({
+      stakerAddress,
+      amount,
+    }))
+    .filter((staker) => staker.amount > BigInt(0));
+
+  return activeStakers.length;
 }
 
 export function updateDapp(dapp: Dapp, entities: Entities) {
@@ -317,12 +355,12 @@ export function updateDapp(dapp: Dapp, entities: Entities) {
 
   entities.DappsToUpdate.forEach((d, index) => {
     if (d.id === dapp.id) {
-      existedDappIndexes.push(index)
+      existedDappIndexes.push(index);
     }
-  })
+  });
 
   for (const existedIndex of existedDappIndexes) {
-    entities.DappsToUpdate.splice(existedIndex, 1)
+    entities.DappsToUpdate.splice(existedIndex, 1);
   }
 
   entities.DappsToUpdate.push(dapp);

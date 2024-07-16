@@ -288,13 +288,13 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
         case events.dappStaking.stake.name:
         case events.dappStaking.unstake.name:
         case events.dappStaking.unstakeFromUnregistered.name:
-          const stake = getStake(event);
+          const period = getPeriodForBlock(block.header.height);
+          const stake = getStake(event, period);
           entities.StakesToInsert.push(stake);
           const dapp = await handleStakersCount(ctx, stake, entities, event);
 
           if (dapp) updateDapp(dapp, entities);
 
-          const period = getPeriodForBlock(block.header.height);
           await aggregateStakesPerDapp(
             ctx,
             entities,
