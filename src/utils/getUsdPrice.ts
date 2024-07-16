@@ -1,4 +1,5 @@
 import https from "https";
+import { IS_SHIBUYA } from "../mapping/protocolState";
 
 const priceCache = new Map<string, number>();
 
@@ -10,6 +11,10 @@ export async function getUsdPriceWithCache(
   token: string,
   timestamp: string
 ): Promise<number> {
+  if (IS_SHIBUYA) {
+    return 0;
+  }
+
   const cacheKey = `${token}-${timestamp}`;
   if (priceCache.has(cacheKey)) {
     return Number(priceCache.get(cacheKey));

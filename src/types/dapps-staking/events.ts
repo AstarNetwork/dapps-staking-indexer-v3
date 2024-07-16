@@ -1,16 +1,14 @@
 import {sts, Block, Bytes, Option, Result, EventType, RuntimeCtx} from '../support'
-import * as v4 from '../v4'
-import * as v12 from '../v12'
-import * as v17 from '../v17'
+import * as v1 from '../v1'
 
 export const bondAndStake =  {
     name: 'DappsStaking.BondAndStake',
     /**
      * Account has bonded and staked funds on a smart contract.
      */
-    v4: new EventType(
+    v1: new EventType(
         'DappsStaking.BondAndStake',
-        sts.tuple([v4.AccountId32, v4.SmartContract, sts.bigint()])
+        sts.tuple([v1.AccountId32, v1.SmartContract, sts.bigint()])
     ),
 }
 
@@ -19,9 +17,9 @@ export const unbondAndUnstake =  {
     /**
      * Account has unbonded & unstaked some funds. Unbonding process begins.
      */
-    v12: new EventType(
+    v1: new EventType(
         'DappsStaking.UnbondAndUnstake',
-        sts.tuple([v12.AccountId32, v12.SmartContract, sts.bigint()])
+        sts.tuple([v1.AccountId32, v1.SmartContract, sts.bigint()])
     ),
 }
 
@@ -30,9 +28,9 @@ export const withdrawFromUnregistered =  {
     /**
      * Account has fully withdrawn all staked amount from an unregistered contract.
      */
-    v12: new EventType(
+    v1: new EventType(
         'DappsStaking.WithdrawFromUnregistered',
-        sts.tuple([v12.AccountId32, v12.SmartContract, sts.bigint()])
+        sts.tuple([v1.AccountId32, v1.SmartContract, sts.bigint()])
     ),
 }
 
@@ -41,9 +39,9 @@ export const withdrawn =  {
     /**
      * Account has withdrawn unbonded funds.
      */
-    v12: new EventType(
+    v1: new EventType(
         'DappsStaking.Withdrawn',
-        sts.tuple([v12.AccountId32, sts.bigint()])
+        sts.tuple([v1.AccountId32, sts.bigint()])
     ),
 }
 
@@ -54,8 +52,8 @@ export const nominationTransfer =  {
      * 
      * \(staker account, origin smart contract, amount, target smart contract\)
      */
-    v17: new EventType(
+    v1: new EventType(
         'DappsStaking.NominationTransfer',
-        sts.tuple([v17.AccountId32, v17.SmartContract, sts.bigint(), v17.SmartContract])
+        sts.tuple([v1.AccountId32, v1.SmartContract, sts.bigint(), v1.SmartContract])
     ),
 }

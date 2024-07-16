@@ -148,3 +148,11 @@ type StakesPerStakerAndPeriod @entity {
   stakerRewardAmount: BigInt!
   bonusRewardAmount: BigInt!
 }
+
+type Burn @entity {
+  id: ID!
+  user: String! @index
+  amount: BigInt!
+  timestamp: BigInt!
+  blockNumber: Int!
+}

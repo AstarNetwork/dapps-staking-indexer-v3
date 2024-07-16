@@ -36,6 +36,9 @@
       "calls": [],
       "storage": [],
       "constants": []
+    },
+    "Balances": {
+      "events": ["Burned"]
     }
   }
 }
