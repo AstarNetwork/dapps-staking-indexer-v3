@@ -10,13 +10,13 @@ import {
 import { assertNotNull } from "@subsquid/util-internal";
 import { lookupArchive } from "@subsquid/archive-registry";
 import { events } from "./types";
-import { isShibuya } from "./mapping/protocolState";
+import { IS_SHIBUYA } from "./mapping/protocolState";
 
 const blockRange = { from: parseInt(process.env.BLOCK_RANGE!, 10) };
 console.log(`Block Range: ${blockRange.from}`);
 // See why shibuya archive is throwing an error.
 const archive =
-  process.env.ARCHIVE !== "" && !isShibuya()
+  process.env.ARCHIVE !== "" && !IS_SHIBUYA
     ? lookupArchive(process.env.ARCHIVE!, {
         type: "Substrate",
         release: "ArrowSquid",
