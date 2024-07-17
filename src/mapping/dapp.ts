@@ -151,8 +151,8 @@ export async function handleStakersCount(
       await deleteUniqueStakerAddress(stake, ctx);
     }
 
-    const totalStakerCount = await getStakersCount(ctx, entities, dapp, period);
-    dapp.stakersCount = totalStakerCount;
+    const stakers = await getStakersList(ctx, entities, dapp, period);
+    dapp.stakersCount = stakers.length;
     await upsertStakers(entities, stake, ctx, totalStake);
     await updateStakersCount(entities, dapp, dappAggregated, event, day, stake);
 
@@ -315,39 +315,6 @@ async function getStakersList(
     .filter((staker) => staker.amount !== BigInt(0));
 
   return stakersList;
-}
-
-async function getStakersCount(
-  ctx: ProcessorContext<Store>,
-  entities: Entities,
-  dapp: Dapp,
-  period: number
-): Promise<number> {
-  const stakesFromDatabase = await ctx.store.findBy(Stake, {
-    period,
-    dappAddress: dapp.id, // this is address of dapp staking contract
-  });
-  const stakesToInsert = entities.StakesToInsert.filter(
-    (x) => x.dappAddress === dapp.id && x.period === period
-  );
-  const allStakes = stakesFromDatabase.concat(stakesToInsert);
-
-  const sumsByStaker: { [key: string]: bigint } = allStakes.reduce(
-    (acc: { [key: string]: bigint }, { stakerAddress, amount }) => {
-      acc[stakerAddress] = (acc[stakerAddress] || BigInt(0)) + BigInt(amount);
-      return acc;
-    },
-    {}
-  );
-
-  const activeStakers = Object.entries(sumsByStaker)
-    .map(([stakerAddress, amount]) => ({
-      stakerAddress,
-      amount,
-    }))
-    .filter((staker) => staker.amount > BigInt(0));
-
-  return activeStakers.length;
 }
 
 export function updateDapp(dapp: Dapp, entities: Entities) {
