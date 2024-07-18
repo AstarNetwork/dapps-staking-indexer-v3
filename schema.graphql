@@ -116,8 +116,7 @@ type Stake @entity {
   amount: BigInt!
   timestamp: BigInt!
   blockNumber: Int!
-  expiredAt: BigInt @index
-  expiredBlockNumber: Int
+  period: Int! @index
 }
 
 enum SubperiodType {

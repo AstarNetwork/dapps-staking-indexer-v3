@@ -37,19 +37,8 @@ export async function handleSubperiod(
       for (const dapp of dapps) {
         dapp.stakersCount = 0;
         updateDapp(dapp, entities);
-
-        // Stake Store
-        let stakes = await ctx.store.findBy(Stake, {
-          dappAddress: dapp.id,
-          expiredAt: IsNull(),
-        });
-
-        for (const stake of stakes) {
-          stake.expiredAt = BigInt(day);
-          stake.expiredBlockNumber = event.block.height;
-          entities.StakesToUpdate.push(stake);
-        }
       }
+
       // Remove all stakers and unique staker addresses
       const stakers = await ctx.store.find(Stakers);
       await ctx.store.remove(stakers);

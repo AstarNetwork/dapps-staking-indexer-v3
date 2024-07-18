@@ -26,10 +26,6 @@ export class Stake {
     @Column_("int4", {nullable: false})
     blockNumber!: number
 
-    @Index_()
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
-    expiredAt!: bigint | undefined | null
-
-    @Column_("int4", {nullable: true})
-    expiredBlockNumber!: number | undefined | null
+    @Column_("int4", {nullable: false})
+    period!: number
 }
