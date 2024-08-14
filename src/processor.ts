@@ -61,6 +61,7 @@ export const processor = new SubstrateBatchProcessor()
       timestamp: true,
     },
   })
+  .setFinalityConfirmation(20)
   .setBlockRange(blockRange);
 
 export type Fields = SubstrateBatchProcessorFields<typeof processor>;
