@@ -39,6 +39,9 @@
     },
     "Balances": {
       "events": ["Burned"]
+    },
+    "Ethereum": {
+      "calls": ["transact"]
     }
   }
 }

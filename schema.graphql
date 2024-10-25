@@ -155,3 +155,9 @@ type Burn @entity {
   timestamp: BigInt!
   blockNumber: Int!
 }
+
+type AddressMapping @entity {
+  id: ID! # H160 address
+  ss58Address: String! @index
+  mappedAtBlock: Int!
+}
