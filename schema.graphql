@@ -113,6 +113,7 @@ type Stake @entity {
   id: ID!
   dappAddress: String! @index
   stakerAddress: String!
+  stakerAddressEvm: String
   amount: BigInt!
   timestamp: BigInt!
   blockNumber: Int!

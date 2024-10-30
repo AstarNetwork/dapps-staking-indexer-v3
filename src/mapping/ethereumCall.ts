@@ -9,7 +9,8 @@ import { AddressMapping } from "../model";
 export async function handleAddressMapping(
   ctx: ProcessorContext<Store>,
   call: Call,
-  entities: Entities
+  entities: Entities,
+  mappingCache: Map<string, string>
 ): Promise<void> {
   // Map on stake event
   const stakingEvent = call.events.find(
@@ -34,6 +35,10 @@ export async function handleAddressMapping(
         });
         entities.mappingsToInsert.push(mapping);
       }
+    }
+
+    if (!mappingCache.has(ss58Address)) {
+      mappingCache.set(ss58Address, h160Address);
     }
   }
 }

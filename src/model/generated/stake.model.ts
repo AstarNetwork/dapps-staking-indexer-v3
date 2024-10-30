@@ -16,6 +16,9 @@ export class Stake {
     @StringColumn_({nullable: false})
     stakerAddress!: string
 
+    @StringColumn_({nullable: true})
+    stakerAddressEvm!: string | undefined | null
+
     @BigIntColumn_({nullable: false})
     amount!: bigint
 

@@ -102,7 +102,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
     for (const call of block.calls) {
       switch (call.name) {
         case calls.ethereum.transact.name:
-          await handleAddressMapping(ctx, call, entities);
+          await handleAddressMapping(ctx, call, entities, addressMapping);
           break;
         default:
           ctx.log.warn(`Unhandled call: ${call.name}`);
@@ -307,6 +307,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
         case events.dappStaking.unstakeFromUnregistered.name: {
           const period = getPeriodForBlock(block.header.height);
           const stake = getStake(event, period);
+          stake.stakerAddressEvm = addressMapping.get(stake.stakerAddress);
           entities.StakesToInsert.push(stake);
           const dapp = await handleStakersCount(ctx, stake, entities, event);
 
