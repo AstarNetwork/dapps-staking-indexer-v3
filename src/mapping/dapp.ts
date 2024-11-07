@@ -17,7 +17,7 @@ import {
   getSs58Address,
 } from "../utils";
 import { SmartContract } from "../types/v1";
-import { getPeriodForBlock } from "./protocolState";
+import { getCurrentPeriod } from "./protocolState";
 
 export function registerDapp(event: Event): Dapp {
   return new Dapp({
@@ -123,7 +123,7 @@ export async function handleStakersCount(
   entities: Entities,
   event: Event
 ): Promise<Dapp | undefined> {
-  const period = getPeriodForBlock(event.block.height);
+  const period = await getCurrentPeriod(entities, ctx);
   const dapp =
     entities.DappsToInsert.find((x) => x.id === stake.dappAddress) ??
     (await ctx.store.findOneBy(Dapp, { id: stake.dappAddress }));

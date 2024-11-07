@@ -31,7 +31,7 @@ import {
 import { handleSubperiod } from "./mapping/subperiod";
 import { handleRewards } from "./mapping/rewards";
 import { handleStakersCountAggregated } from "./mapping/stakersCount";
-import { getPeriodForBlock } from "./mapping/protocolState";
+import { getCurrentPeriod, handleNewEra } from "./mapping/protocolState";
 import { handleRewardsPeriodAggregation } from "./mapping/periodAggregation";
 import { insertBurnEvent } from "./mapping/burn";
 import { handleAddressMapping } from "./mapping/ethereumCall";
@@ -94,7 +94,8 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
   await ctx.store.upsert(entities.StakesPerDapAndPeriodToUpsert);
   await ctx.store.upsert(entities.StakesPerStakerAndPeriodToUpsert);
   await ctx.store.insert(entities.BurnEventsToInsert);
-  await ctx.store.insert(entities.mappingsToInsert);
+  await ctx.store.insert(entities.MappingsToInsert);
+  await ctx.store.insert(entities.EraPeriodMappingsToInsert);
 });
 
 async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
@@ -305,7 +306,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
         case events.dappStaking.stake.name:
         case events.dappStaking.unstake.name:
         case events.dappStaking.unstakeFromUnregistered.name: {
-          const period = getPeriodForBlock(block.header.height);
+          const period = await getCurrentPeriod(entities, ctx);
           const stake = getStake(event, period);
           stake.stakerAddressEvm = addressMapping.get(stake.stakerAddress);
           entities.StakesToInsert.push(stake);
@@ -347,8 +348,12 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
         case events.balances.burned.name:
           insertBurnEvent(entities, event, ctx);
           break;
+        case events.dappStaking.newEra.name:
+          await handleNewEra(entities, event, ctx);
+          break;
         default:
-          ctx.log.warn(`Unhandled event: ${event.name}`);
+          // Don't bloat the logs with unhandled events
+          // ctx.log.warn(`Unhandled event: ${event.name}`);
           continue;
       }
     }

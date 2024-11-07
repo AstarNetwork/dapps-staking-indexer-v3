@@ -15,6 +15,7 @@ import type {
   StakesPerStakerAndPeriod,
   Burn,
   AddressMapping,
+  EraPeriodMapping,
 } from "../model";
 
 export class Entities {
@@ -37,5 +38,6 @@ export class Entities {
   public StakesPerDapAndPeriodToUpsert: StakesPerDapAndPeriod[] = [];
   public StakesPerStakerAndPeriodToUpsert: StakesPerStakerAndPeriod[] = [];
   public BurnEventsToInsert: Burn[] = [];
-  public mappingsToInsert: AddressMapping[] = [];
+  public MappingsToInsert: AddressMapping[] = [];
+  public EraPeriodMappingsToInsert: EraPeriodMapping[] = [];
 }

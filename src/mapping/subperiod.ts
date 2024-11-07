@@ -1,7 +1,6 @@
 import { Store } from "@subsquid/typeorm-store";
 import {
   Dapp,
-  Stake,
   Subperiod,
   SubperiodType,
   Stakers,
@@ -9,14 +8,22 @@ import {
 } from "../model";
 import { Event, ProcessorContext } from "../processor";
 import { Entities, getFirstTimestampOfTheDay } from "../utils";
-import { IsNull } from "typeorm";
 import { updateDapp } from "./dapp";
+import { setCurrentPeriod } from "./protocolState";
 
 export async function handleSubperiod(
   ctx: ProcessorContext<Store>,
   event: Event,
   entities: Entities
 ): Promise<void> {
+  // There must be an era period mapping entity in memory since NewEra event is raised
+  // immediately before NewSubperiod event.
+  const period = event.args.number;
+  entities.EraPeriodMappingsToInsert[
+    entities.EraPeriodMappingsToInsert.length - 1
+  ].period = period;
+  setCurrentPeriod(period);
+
   const day = getFirstTimestampOfTheDay(event.block.timestamp ?? 0);
 
   entities.SubperiodsToInsert.push(

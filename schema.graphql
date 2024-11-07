@@ -162,3 +162,8 @@ type AddressMapping @entity {
   ss58Address: String! @index
   mappedAtBlock: Int!
 }
+
+type EraPeriodMapping @entity {
+  id: ID! # era
+  period: Int!
+}

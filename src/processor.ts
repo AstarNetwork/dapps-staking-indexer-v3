@@ -57,6 +57,8 @@ export const processor = new SubstrateBatchProcessor()
       events.dappStaking.reward.name,
       events.dappStaking.bonusReward.name,
       events.dappStaking.dAppReward.name,
+      events.dappStaking.newEra.name,
+      events.dappStaking.newSubperiod.name,
       events.balances.burned.name,
     ],
   })

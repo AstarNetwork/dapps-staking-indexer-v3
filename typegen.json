@@ -31,7 +31,9 @@
         "DAppReward",
         "UnstakeFromUnregistered",
         "ExpiredEntriesRemoved",
-        "Force"
+        "Force",
+        "NewEra",
+        "NewSubperiod"
       ],
       "calls": [],
       "storage": [],

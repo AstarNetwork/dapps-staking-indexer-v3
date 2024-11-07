@@ -24,7 +24,7 @@ export async function handleAddressMapping(
     const h160Address = ethereumExecutedEvent.args.from;
     const ss58Address = getSs58Address(stakingEvent.args.account);
 
-    let mapping = entities.mappingsToInsert.find((x) => x.id === h160Address);
+    let mapping = entities.MappingsToInsert.find((x) => x.id === h160Address);
     if (!mapping) {
       mapping = await ctx.store.get(AddressMapping, h160Address);
       if (!mapping) {
@@ -33,7 +33,7 @@ export async function handleAddressMapping(
           ss58Address: ss58Address,
           mappedAtBlock: call.block.height,
         });
-        entities.mappingsToInsert.push(mapping);
+        entities.MappingsToInsert.push(mapping);
       }
     }
 
