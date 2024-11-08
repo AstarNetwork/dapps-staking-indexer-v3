@@ -20,10 +20,6 @@ deploy:
       RPC_ENDPOINT: https://astar.api.onfinality.io/public
       BLOCK_RANGE: 4342300
       ARCHIVE: astar
-      V3_FIRST_BLOCK: 5514934
-      V3_PERIOD_LENGTH: 878400
-      V3_FIRST_ERA: 651
-      V3_ERAS_PER_PERIOD: 112
   api:
     cmd:
       - npx
