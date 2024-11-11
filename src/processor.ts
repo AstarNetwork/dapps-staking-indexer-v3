@@ -16,7 +16,7 @@ if (!process.env.BLOCK_RANGE) {
   throw new Error("BLOCK_RANGE is not set");
 }
 
-const blockRange = { from: Number.parseInt(process.env.BLOCK_RANGE, 10) };
+const blockRange = { from: Number(process.env.BLOCK_RANGE) };
 console.log(`Block Range: ${blockRange.from}`);
 // See why shibuya archive is throwing an error.
 const archive =
