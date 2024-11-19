@@ -113,6 +113,7 @@ type Stake @entity {
   id: ID!
   dappAddress: String! @index
   stakerAddress: String!
+  stakerAddressEvm: String
   amount: BigInt!
   timestamp: BigInt!
   blockNumber: Int!
@@ -154,4 +155,15 @@ type Burn @entity {
   amount: BigInt!
   timestamp: BigInt!
   blockNumber: Int!
+}
+
+type AddressMapping @entity {
+  id: ID! # H160 address
+  ss58Address: String! @index
+  mappedAtBlock: Int!
+}
+
+type EraPeriodMapping @entity {
+  id: ID! # era
+  period: Int!
 }

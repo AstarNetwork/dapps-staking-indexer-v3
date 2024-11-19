@@ -31,7 +31,9 @@
         "DAppReward",
         "UnstakeFromUnregistered",
         "ExpiredEntriesRemoved",
-        "Force"
+        "Force",
+        "NewEra",
+        "NewSubperiod"
       ],
       "calls": [],
       "storage": [],
@@ -39,6 +41,9 @@
     },
     "Balances": {
       "events": ["Burned"]
+    },
+    "Ethereum": {
+      "calls": ["transact"]
     }
   }
 }

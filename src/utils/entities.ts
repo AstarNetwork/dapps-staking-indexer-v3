@@ -1,4 +1,4 @@
-import {
+import type {
   Dapp,
   DappAggregatedDaily,
   StakersCountAggregatedDaily,
@@ -14,6 +14,8 @@ import {
   StakesPerDapAndPeriod,
   StakesPerStakerAndPeriod,
   Burn,
+  AddressMapping,
+  EraPeriodMapping,
 } from "../model";
 
 export class Entities {
@@ -36,4 +38,6 @@ export class Entities {
   public StakesPerDapAndPeriodToUpsert: StakesPerDapAndPeriod[] = [];
   public StakesPerStakerAndPeriodToUpsert: StakesPerStakerAndPeriod[] = [];
   public BurnEventsToInsert: Burn[] = [];
+  public MappingsToInsert: AddressMapping[] = [];
+  public EraPeriodMappingsToInsert: EraPeriodMapping[] = [];
 }

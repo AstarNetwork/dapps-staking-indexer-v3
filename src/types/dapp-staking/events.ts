@@ -14,6 +14,19 @@ export const maintenanceMode =  {
     ),
 }
 
+export const newEra =  {
+    name: 'DappStaking.NewEra',
+    /**
+     * New era has started.
+     */
+    v1: new EventType(
+        'DappStaking.NewEra',
+        sts.struct({
+            era: sts.number(),
+        })
+    ),
+}
+
 export const newSubperiod =  {
     name: 'DappStaking.NewSubperiod',
     /**

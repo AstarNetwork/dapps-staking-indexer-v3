@@ -1,6 +1,6 @@
 manifestVersion: subsquid.io/v0.1
 name: dapps-staking-indexer-shibuya
-version: 13
+version: 14
 description: "ArrowSquid Indexer for Dapps Staking V3"
 build:
 scale:
@@ -20,10 +20,6 @@ deploy:
       RPC_ENDPOINT: wss://shibuya-rpc.dwellir.com
       BLOCK_RANGE: 5335615
       ARCHIVE: "shibuya"
-      V3_FIRST_BLOCK: 5335615
-      V3_PERIOD_LENGTH: 50400
-      V3_FIRST_ERA: 4303
-      V3_ERAS_PER_PERIOD: 21
   api:
     cmd:
       - npx

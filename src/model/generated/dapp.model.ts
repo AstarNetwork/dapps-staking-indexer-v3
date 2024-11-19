@@ -1,5 +1,4 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} from "typeorm"
-import * as marshal from "./marshal"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, IntColumn as IntColumn_, StringColumn as StringColumn_, BigIntColumn as BigIntColumn_} from "@subsquid/typeorm-store"
 import {DappState} from "./_dappState"
 
 @Entity_()
@@ -11,30 +10,30 @@ export class Dapp {
     @PrimaryColumn_()
     id!: string
 
-    @Column_("int4", {nullable: false})
+    @IntColumn_({nullable: false})
     dappId!: number
 
-    @Column_("text", {nullable: false})
+    @StringColumn_({nullable: false})
     owner!: string
 
-    @Column_("text", {nullable: true})
+    @StringColumn_({nullable: true})
     beneficiary!: string | undefined | null
 
     @Column_("varchar", {length: 12, nullable: false})
     state!: DappState
 
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+    @BigIntColumn_({nullable: false})
     registeredAt!: bigint
 
-    @Column_("int4", {nullable: false})
+    @IntColumn_({nullable: false})
     registrationBlockNumber!: number
 
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
+    @BigIntColumn_({nullable: true})
     unregisteredAt!: bigint | undefined | null
 
-    @Column_("int4", {nullable: true})
+    @IntColumn_({nullable: true})
     unregistrationBlockNumber!: number | undefined | null
 
-    @Column_("int4", {nullable: false})
+    @IntColumn_({nullable: false})
     stakersCount!: number
 }

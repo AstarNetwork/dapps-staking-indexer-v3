@@ -1,4 +1,3 @@
-import assert from "assert";
 import * as ss58 from "@subsquid/ss58";
 import { TypeormDatabase, Store } from "@subsquid/typeorm-store";
 import { Equal, MoreThanOrEqual } from "typeorm";
@@ -7,7 +6,7 @@ import {
   StakingEvent,
   UserTransactionType,
 } from "./model";
-import { events } from "./types";
+import { events, calls } from "./types";
 import { processor, ProcessorContext } from "./processor";
 import {
   Entities,
@@ -32,9 +31,12 @@ import {
 import { handleSubperiod } from "./mapping/subperiod";
 import { handleRewards } from "./mapping/rewards";
 import { handleStakersCountAggregated } from "./mapping/stakersCount";
-import { getPeriodForBlock } from "./mapping/protocolState";
+import { getCurrentPeriod, handleNewEra } from "./mapping/protocolState";
 import { handleRewardsPeriodAggregation } from "./mapping/periodAggregation";
 import { insertBurnEvent } from "./mapping/burn";
+import { handleAddressMapping } from "./mapping/ethereumCall";
+
+const addressMapping = new Map<string, string>();
 
 // supportHotBlocks: true is actually the default, adding it so that it's obvious how to disable it
 processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
@@ -92,11 +94,24 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
   await ctx.store.upsert(entities.StakesPerDapAndPeriodToUpsert);
   await ctx.store.upsert(entities.StakesPerStakerAndPeriodToUpsert);
   await ctx.store.insert(entities.BurnEventsToInsert);
+  await ctx.store.insert(entities.MappingsToInsert);
+  await ctx.store.insert(entities.EraPeriodMappingsToInsert);
 });
 
 async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
-  for (let block of ctx.blocks) {
-    for (let event of block.events) {
+  for (const block of ctx.blocks) {
+    for (const call of block.calls) {
+      switch (call.name) {
+        case calls.ethereum.transact.name:
+          await handleAddressMapping(ctx, call, entities, addressMapping);
+          break;
+        default:
+          ctx.log.warn(`Unhandled call: ${call.name}`);
+          continue;
+      }
+    }
+
+    for (const event of block.events) {
       let decoded;
       ctx.log.info(
         `Processing event: ${event.name}, block ${block.header.height}`
@@ -266,19 +281,22 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
         case events.dappStaking.dAppRegistered.name:
           entities.DappsToInsert.push(registerDapp(event));
           break;
-        case events.dappStaking.dAppUnregistered.name:
+        case events.dappStaking.dAppUnregistered.name: {
           const unregisteredDapp = await unregisterDapp(ctx, event);
           unregisteredDapp && updateDapp(unregisteredDapp, entities);
           break;
-        case events.dappStaking.dAppOwnerChanged.name:
+        }
+        case events.dappStaking.dAppOwnerChanged.name: {
           const ownerChangedDapp = await updateOwner(ctx, event);
           ownerChangedDapp && updateDapp(ownerChangedDapp, entities);
           break;
-        case events.dappStaking.dAppRewardDestinationUpdated.name:
+        }
+        case events.dappStaking.dAppRewardDestinationUpdated.name: {
           const beneficiaryChangedDapp = await updateBeneficiary(ctx, event);
           beneficiaryChangedDapp &&
             updateDapp(beneficiaryChangedDapp, entities);
           break;
+        }
         case events.dappStaking.locked.name:
         case events.dappStaking.unlocking.name:
         // case events.dappStaking.claimedUnlocked.name:
@@ -287,9 +305,10 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           break;
         case events.dappStaking.stake.name:
         case events.dappStaking.unstake.name:
-        case events.dappStaking.unstakeFromUnregistered.name:
-          const period = getPeriodForBlock(block.header.height);
+        case events.dappStaking.unstakeFromUnregistered.name: {
+          const period = await getCurrentPeriod(entities, ctx);
           const stake = getStake(event, period);
+          stake.stakerAddressEvm = addressMapping.get(stake.stakerAddress);
           entities.StakesToInsert.push(stake);
           const dapp = await handleStakersCount(ctx, stake, entities, event);
 
@@ -315,6 +334,7 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           );
 
           break;
+        }
         case events.dappStaking.newSubperiod.name:
           await handleSubperiod(ctx, event, entities);
           break;
@@ -328,8 +348,12 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
         case events.balances.burned.name:
           insertBurnEvent(entities, event, ctx);
           break;
+        case events.dappStaking.newEra.name:
+          await handleNewEra(entities, event, ctx);
+          break;
         default:
-          ctx.log.warn(`Unhandled event: ${event.name}`);
+          // Don't bloat the logs with unhandled events
+          // ctx.log.warn(`Unhandled event: ${event.name}`);
           continue;
       }
     }
@@ -352,7 +376,7 @@ async function getGroupedStakingEvents(
   );
   let ungroupedStakingEvents = events;
 
-  let lastGroupedStakingEvent = await ctx.store.find(GroupedStakingEvent, {
+  const lastGroupedStakingEvent = await ctx.store.find(GroupedStakingEvent, {
     order: { timestamp: "DESC" },
     take: 1,
     where: { transaction: txType },
@@ -361,7 +385,7 @@ async function getGroupedStakingEvents(
     ungroupedTimestampsFrom = getFirstTimestampOfTheNextDay(
       Number(lastGroupedStakingEvent[0].timestamp)
     );
-    let savedUngroupedStakingEvents = await ctx.store.findBy(StakingEvent, {
+    const savedUngroupedStakingEvents = await ctx.store.findBy(StakingEvent, {
       transaction: Equal(txType),
       timestamp: MoreThanOrEqual(BigInt(ungroupedTimestampsFrom)),
     });

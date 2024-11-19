@@ -9,10 +9,14 @@ import {
 } from "@subsquid/substrate-processor";
 import { assertNotNull } from "@subsquid/util-internal";
 import { lookupArchive } from "@subsquid/archive-registry";
-import { events } from "./types";
+import { events, calls } from "./types";
 import { IS_SHIBUYA } from "./mapping/protocolState";
 
-const blockRange = { from: parseInt(process.env.BLOCK_RANGE!, 10) };
+if (!process.env.BLOCK_RANGE) {
+  throw new Error("BLOCK_RANGE is not set");
+}
+
+const blockRange = { from: Number(process.env.BLOCK_RANGE) };
 console.log(`Block Range: ${blockRange.from}`);
 // See why shibuya archive is throwing an error.
 const archive =
@@ -53,8 +57,14 @@ export const processor = new SubstrateBatchProcessor()
       events.dappStaking.reward.name,
       events.dappStaking.bonusReward.name,
       events.dappStaking.dAppReward.name,
+      events.dappStaking.newEra.name,
+      events.dappStaking.newSubperiod.name,
       events.balances.burned.name,
     ],
+  })
+  .addCall({
+    name: [calls.ethereum.transact.name],
+    events: true,
   })
   .setFields({
     block: {
