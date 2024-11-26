@@ -167,3 +167,9 @@ type EraPeriodMapping @entity {
   id: ID! # era
   period: Int!
 }
+
+type TotalIssuance @entity {
+  id: ID! # block
+  timestamp: BigInt!
+  balance: BigInt!
+}
