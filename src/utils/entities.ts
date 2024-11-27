@@ -16,6 +16,7 @@ import type {
   Burn,
   AddressMapping,
   EraPeriodMapping,
+  TotalIssuance,
 } from "../model";
 
 export class Entities {
@@ -40,4 +41,5 @@ export class Entities {
   public BurnEventsToInsert: Burn[] = [];
   public MappingsToInsert: AddressMapping[] = [];
   public EraPeriodMappingsToInsert: EraPeriodMapping[] = [];
+  public TotalIssuancesToInsert: TotalIssuance[] = [];
 }

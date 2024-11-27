@@ -1,8 +1,8 @@
 import { Store } from "@subsquid/typeorm-store";
 import { Event, ProcessorContext } from "../processor";
 import { Entities } from "../utils";
-import { events } from "../types";
-import { EraPeriodMapping } from "../model";
+import { events, storage } from "../types";
+import { EraPeriodMapping, TotalIssuance } from "../model";
 
 export const IS_SHIBUYA = process.env.ARCHIVE === "shibuya";
 let currentPeriod: number | undefined;
@@ -79,6 +79,7 @@ export async function handleNewEra(
   ctx: ProcessorContext<Store>
 ): Promise<void> {
   if (events.dappStaking.newEra.v1.is(event)) {
+    // Era period mapping
     const previousEra = await getLastPeriodMapping(ctx);
     const decodedData = events.dappStaking.newEra.v1.decode(event);
     const newEraPeriodMapping = new EraPeriodMapping({
@@ -86,6 +87,18 @@ export async function handleNewEra(
       period: previousEra?.period ?? 0,
     });
     entities.EraPeriodMappingsToInsert.push(newEraPeriodMapping);
+
+    // Total issuance
+    const totalIssuance = await storage.balances.totalIssuance.v1.get(
+      event.block
+    );
+    entities.TotalIssuancesToInsert.push(
+      new TotalIssuance({
+        id: event.block.height.toString(),
+        timestamp: BigInt(event.block.timestamp || 0),
+        balance: totalIssuance ?? -1n,
+      })
+    );
   } else {
     ctx.log.error("Unsupported NewEra event version");
   }

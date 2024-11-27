@@ -1,5 +1,5 @@
-module.exports = class Data1730968622160 {
-    name = 'Data1730968622160'
+module.exports = class Data1732641887168 {
+    name = 'Data1732641887168'
 
     async up(db) {
         await db.query(`CREATE TABLE "staking_event" ("id" character varying NOT NULL, "user_address" text NOT NULL, "transaction" character varying(24) NOT NULL, "contract_address" text, "amount" numeric NOT NULL, "timestamp" numeric NOT NULL, "block_number" numeric NOT NULL, CONSTRAINT "PK_c4f2c390140b9ff847dae450025" PRIMARY KEY ("id"))`)
@@ -38,6 +38,8 @@ module.exports = class Data1730968622160 {
         await db.query(`CREATE INDEX "IDX_3c0a942287940dbfea8949b919" ON "burn" ("user") `)
         await db.query(`CREATE TABLE "address_mapping" ("id" character varying NOT NULL, "ss58_address" text NOT NULL, "mapped_at_block" integer NOT NULL, CONSTRAINT "PK_8611a631b9c1187979a08ecb53f" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_53d3b98caff3fa93890854df99" ON "address_mapping" ("ss58_address") `)
+        await db.query(`CREATE TABLE "era_period_mapping" ("id" character varying NOT NULL, "period" integer NOT NULL, CONSTRAINT "PK_f2cc5cf5608926b3bf95ab27588" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE TABLE "total_issuance" ("id" character varying NOT NULL, "timestamp" numeric NOT NULL, "balance" numeric NOT NULL, CONSTRAINT "PK_9cdf75245e881dc54db2b9c2553" PRIMARY KEY ("id"))`)
     }
 
     async down(db) {
@@ -77,5 +79,7 @@ module.exports = class Data1730968622160 {
         await db.query(`DROP INDEX "public"."IDX_3c0a942287940dbfea8949b919"`)
         await db.query(`DROP TABLE "address_mapping"`)
         await db.query(`DROP INDEX "public"."IDX_53d3b98caff3fa93890854df99"`)
+        await db.query(`DROP TABLE "era_period_mapping"`)
+        await db.query(`DROP TABLE "total_issuance"`)
     }
 }

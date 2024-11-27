@@ -1,6 +1,6 @@
 manifestVersion: subsquid.io/v0.1
 name: dapps-staking-indexer-shiden
-version: 14
+version: 15
 description: "ArrowSquid Indexer for Dapps Staking V3"
 build:
 scale:

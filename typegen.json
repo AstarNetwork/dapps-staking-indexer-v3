@@ -40,7 +40,8 @@
       "constants": []
     },
     "Balances": {
-      "events": ["Burned"]
+      "events": ["Burned"],
+      "storage": ["TotalIssuance"]
     },
     "Ethereum": {
       "calls": ["transact"]
