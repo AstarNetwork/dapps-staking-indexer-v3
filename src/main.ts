@@ -96,6 +96,7 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (ctx) => {
   await ctx.store.insert(entities.BurnEventsToInsert);
   await ctx.store.insert(entities.MappingsToInsert);
   await ctx.store.insert(entities.EraPeriodMappingsToInsert);
+  await ctx.store.insert(entities.TotalIssuancesToInsert);
 });
 
 async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
