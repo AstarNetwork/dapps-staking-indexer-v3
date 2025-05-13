@@ -1,7 +1,6 @@
 {
   "outDir": "src/types",
-  "specVersions": "localNode.jsonl",
-  "specVersionsProd": "https://v2.archive.subsquid.io/metadata/astar",
+  "specVersions": "https://v2.archive.subsquid.io/metadata/astar",
   "pallets": {
     "DappsStaking": {
       "events": [
