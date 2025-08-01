@@ -2,6 +2,7 @@ import * as ss58 from "@subsquid/ss58";
 import { TypeormDatabase, Store } from "@subsquid/typeorm-store";
 import { Equal, MoreThanOrEqual } from "typeorm";
 import {
+  Dapp,
   GroupedStakingEvent,
   StakingEvent,
   UserTransactionType,
@@ -13,6 +14,7 @@ import {
   getDayIdentifier,
   getFirstTimestampOfTheNextDay,
   getFirstTimestampOfTheDay,
+  getContractAddress,
 } from "./utils";
 import {
   updateOwner,
@@ -280,7 +282,17 @@ async function handleEvents(ctx: ProcessorContext<Store>, entities: Entities) {
           break;
 
         case events.dappStaking.dAppRegistered.name:
-          entities.DappsToInsert.push(registerDapp(event));
+          // Is it possible to register-unregister-and register the same dApp again.
+          const id = getContractAddress(event.args.smartContract);
+          const dapp = await ctx.store.findOne(Dapp, { where: { id } });
+          if (dapp) {
+            ctx.log.warn(
+              `${event.name}:: Dapp ${id} already exists, updating registration.`
+            );
+            entities.DappsToUpdate.push(registerDapp(event));
+          } else {
+            entities.DappsToInsert.push(registerDapp(event));
+          }
           break;
         case events.dappStaking.dAppUnregistered.name: {
           const unregisteredDapp = await unregisterDapp(ctx, event);
