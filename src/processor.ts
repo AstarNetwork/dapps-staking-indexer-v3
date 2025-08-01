@@ -32,10 +32,8 @@ const chain = process.env.RPC_ENDPOINT; // process.env[rpcSubstrateHttp] || proc
 console.log(`Chain URL: ${chain}`);
 
 export const processor = new SubstrateBatchProcessor()
-  .setDataSource({
-    chain: assertNotNull(chain),
-    archive: archive,
-  })
+  .setGateway(assertNotNull(archive))
+  .setRpcEndpoint(assertNotNull(chain))
   .addEvent({
     name: [
       events.dappsStaking.withdrawn.name,
