@@ -17,7 +17,7 @@ deploy:
       - node
       - lib/main
     env:
-      RPC_ENDPOINT: wss://shiden-rpc.dwellir.com
+      RPC_ENDPOINT: wss://rpc.shiden.astar.network
       BLOCK_RANGE: 5876078
       ARCHIVE: shiden
   api:
