@@ -17,7 +17,7 @@ deploy:
       - node
       - lib/main
     env:
-      RPC_ENDPOINT: wss://shibuya-rpc.dwellir.com
+      RPC_ENDPOINT: wss://rpc.shibuya.astar.network
       BLOCK_RANGE: 5335615
       ARCHIVE: "shibuya"
   api:
